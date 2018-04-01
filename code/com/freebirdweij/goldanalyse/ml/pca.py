@@ -54,11 +54,11 @@ def pca_code(dataMat,percentage=0.99):
     [eig_v,eig_vect] = linalg.eigh(XTX)
     
     for i in range(d):
-        eig_vect[:,i] = eig_vect[:i]/linalg.norm(eig_vect[:i])
+        eig_vect[:,i] = eig_vect[:,i]/linalg.norm(eig_vect[:,i])
         
     idx = np.argsort(-eig_v)
     eig_v = eig_v[idx]
-    eig_vect = eig_vect[:idx]
+    eig_vect = eig_vect[:,idx]
     k=percentage2n(eig_v,percentage)                 #For the variance of enough percent,need anterior k eigenvectors.
     eig_v = eig_v[0:k].copy()
     eig_vect = eig_vect[:,0:k].copy()
