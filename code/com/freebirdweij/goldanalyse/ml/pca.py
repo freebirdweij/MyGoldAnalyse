@@ -15,15 +15,15 @@ from scipy import linalg
 
 import com.freebirdweij.goldanalyse.ml.data_util as base
 
-#零均值化  
+#Zero mean method 
 def zeroMean(dataMat):        
-    meanVal=np.mean(dataMat,axis=0)     #按列求均值，即求各个特征的均值  
+    meanVal=np.mean(dataMat,axis=0)     #To get means of every columns. i.e. means of every features.  
     newData=dataMat-meanVal  
     return newData,meanVal  
  
 def percentage2n(eigVals,percentage):  
-    sortArray=np.sort(eigVals)   #升序  
-    sortArray=sortArray[-1::-1]  #逆转，即降序  
+    sortArray=np.sort(eigVals)   #Ascending sequence. 
+    sortArray=sortArray[-1::-1]  #Reverse i.e. descending sequence.
     arraySum=sum(sortArray)  
     tmpSum=0  
     num=0  
@@ -36,14 +36,14 @@ def percentage2n(eigVals,percentage):
          
 def pca(dataMat,percentage=0.99):  
     newData,meanVal=zeroMean(dataMat)  
-    covMat=np.cov(newData,rowvar=0)    #求协方差矩阵,return ndarray；若rowvar非0，一列代表一个样本，为0，一行代表一个样本  
-    eigVals,eigVects=np.linalg.eig(np.mat(covMat))#求特征值和特征向量,特征向量是按列放的，即一列代表一个特征向量  
-    n=percentage2n(eigVals,percentage)                 #要达到percent的方差百分比，需要前n个特征向量  
-    eigValIndice=np.argsort(eigVals)            #对特征值从小到大排序
-    n_eigValIndice=eigValIndice[-1:-(n+1):-1]   #最大的n个特征值的下标  
-    n_eigVect=eigVects[:,n_eigValIndice]        #最大的n个特征值对应的特征向量  
-    lowDDataMat=newData*n_eigVect               #低维特征空间的数据  
-    reconMat=(lowDDataMat*n_eigVect.T)+meanVal  #重构数据  
+    covMat=np.cov(newData,rowvar=0)    #For covariance matrix,return ndarray;if rowvar != 0,a column as a sample,if =0,a row as a sample.  
+    eigVals,eigVects=np.linalg.eig(np.mat(covMat))#For eigenvalue and eigenvector,eigenvector listed by column i.e. a column as an eigenvector.  
+    n=percentage2n(eigVals,percentage)                 #For the variance of enough percent,need anterior n eigenvectors.
+    eigValIndice=np.argsort(eigVals)            #Increasing order eigenvectors.
+    n_eigValIndice=eigValIndice[-1:-(n+1):-1]   #Lowindex of maximum n eigenvalues.  
+    n_eigVect=eigVects[:,n_eigValIndice]        #Eigenvectors for maximum n eigenvalues.  
+    lowDDataMat=newData*n_eigVect               #Datas in smaller dimensions spaces.  
+    reconMat=(lowDDataMat*n_eigVect.T)+meanVal  #Reconstructed datas.  
     return lowDDataMat,reconMat 
 
 def pca_code(dataMat,percentage=0.99):
@@ -59,7 +59,7 @@ def pca_code(dataMat,percentage=0.99):
     idx = np.argsort(-eig_v)
     eig_v = eig_v[idx]
     eig_vect = eig_vect[:idx]
-    k=percentage2n(eig_v,percentage)                 #要达到percent的方差百分比，需要前k个特征向量  
+    k=percentage2n(eig_v,percentage)                 #For the variance of enough percent,need anterior k eigenvectors.
     eig_v = eig_v[0:k].copy()
     eig_vect = eig_vect[:,0:k].copy()
        
