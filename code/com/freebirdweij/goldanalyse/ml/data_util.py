@@ -69,7 +69,7 @@ def load_csv_datas_head_row(filename,
 
 def write_a_dataset_to_a_csv(filename,
                              dataset):
-  with open(filename, 'w') as csvfile:
+  with open(filename,'w',newline='') as csvfile:
     spamwriter = csv.writer(csvfile,dialect='excel')
     for i in range(len(dataset)):
       spamwriter.writerow(dataset[i])

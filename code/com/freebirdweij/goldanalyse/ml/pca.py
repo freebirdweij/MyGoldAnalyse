@@ -82,6 +82,7 @@ def main():
   print(k)
   print('pcaData:-----------------------')
   print(pcaData)
+  base.write_a_dataset_to_a_csv('audt365-2018-4-2-day-pca.csv', pcaData)
 
 
 
