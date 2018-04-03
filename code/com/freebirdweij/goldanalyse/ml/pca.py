@@ -76,7 +76,7 @@ def main():
   print('dataMat:-----------------------')
   print(dataMat)
 
-  k,eig_vect = pca_code(dataMat)
+  k,eig_vect = pca_code(dataMat,FLAGS.percentage)
   pcaData = np.dot(dataMat,eig_vect)
   print('k:-----------------------')
   print(k)
@@ -101,10 +101,10 @@ if __name__ == '__main__':
       help='Number of steps to run trainer.'
   )
   parser.add_argument(
-      '--hidden1',
-      type=int,
-      default=128,
-      help='Number of units in hidden layer 1.'
+      '--percentage',
+      type=float,
+      default=0.5,
+      help='Number of float for pca remain percentage.'
   )
   parser.add_argument(
       '--hidden2',
