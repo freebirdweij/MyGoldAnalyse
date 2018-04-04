@@ -48,9 +48,12 @@ def pca(dataMat,percentage=0.99):
 
 def pca_code(dataMat,percentage=0.99):
     [n,d] = shape(dataMat)
+    print('n===:%d----------d===:%d-----------'%(n, d))
     mean_v = dataMat.mean(axis=0)
     dataMat -= mean_v
     XTX = np.dot(dataMat.T,dataMat)
+    [xn,xd] = shape(XTX)
+    print('xn===:%d----------xd===:%d-----------'%(xn, xd))
     [eig_v,eig_vect] = linalg.eigh(XTX)
     
     for i in range(d):
@@ -61,6 +64,8 @@ def pca_code(dataMat,percentage=0.99):
     eig_vect = eig_vect[:,idx]
     k=percentage2n(eig_v,percentage)                 #For the variance of enough percent,need anterior k eigenvectors.
     eig_v = eig_v[0:k].copy()
+    print('eig_v:-----------------------')
+    print(eig_v)
     eig_vect = eig_vect[:,0:k].copy()
        
     return k,eig_vect
@@ -103,7 +108,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--percentage',
       type=float,
-      default=0.5,
+      default=0.6,
       help='Number of float for pca remain percentage.'
   )
   parser.add_argument(
