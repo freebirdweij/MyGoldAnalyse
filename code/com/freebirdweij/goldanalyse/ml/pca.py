@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-# pylint: disable=missing-docstring
 import argparse
 import os.path
 import sys
@@ -43,7 +42,7 @@ def pca(dataMat,percentage=0.99):
     n_eigValIndice=eigValIndice[-1:-(n+1):-1]   #Lowindex of maximum n eigenvalues.  
     n_eigVect=eigVects[:,n_eigValIndice]        #Eigenvectors for maximum n eigenvalues.  
     lowDDataMat=newData*n_eigVect               #Datas in smaller dimensions spaces.  
-    reconMat=(lowDDataMat*n_eigVect.T)+meanVal  #Reconstructed datas.  
+    reconMat=np.dot(lowDDataMat,n_eigVect.T)+meanVal  #Reconstructed datas.  
     return lowDDataMat,reconMat 
 
 def pca_code(dataMat,percentage=0.99):
@@ -68,7 +67,7 @@ def pca_code(dataMat,percentage=0.99):
     print(eig_v)
     eig_vect = eig_vect[:,0:k].copy()
        
-    return k,eig_vect
+    return k,eig_vect,mean_v
 
 def main():
     
@@ -81,13 +80,17 @@ def main():
   print('dataMat:-----------------------')
   print(dataMat)
 
-  k,eig_vect = pca_code(dataMat,FLAGS.percentage)
+  k,eig_vect,mean_v = pca_code(dataMat,FLAGS.percentage)
   pcaData = np.dot(dataMat,eig_vect)
+  reconMat = np.dot(pcaData,eig_vect.T)+mean_v  #Reconstructed datas.
   print('k:-----------------------')
   print(k)
   print('pcaData:-----------------------')
   print(pcaData)
+  print('reconMat:-----------------------')
+  print(reconMat)
   base.write_a_dataset_to_a_csv('audt365-2018-4-2-day-pca.csv', pcaData)
+  base.write_a_dataset_to_a_csv('audt365-2018-4-2-day-pca-recn.csv', reconMat)
 
 
 
@@ -108,7 +111,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--percentage',
       type=float,
-      default=0.6,
+      default=0.9,
       help='Number of float for pca remain percentage.'
   )
   parser.add_argument(
