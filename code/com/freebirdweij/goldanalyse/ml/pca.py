@@ -111,7 +111,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--percentage',
       type=float,
-      default=0.9,
+      default=0.99,
       help='Number of float for pca remain percentage.'
   )
   parser.add_argument(
