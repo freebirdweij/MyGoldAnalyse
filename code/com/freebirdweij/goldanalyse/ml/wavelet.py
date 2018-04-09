@@ -38,14 +38,15 @@ def construct_sequence_mat(seqData,seqLen):
       if i < seqLen :
         tmp = seqData[0]
         row = []
-        for j in seqLen-i-1 :
+        for j in range(seqLen-i-1) :
           row.append(tmp)
-        row.append(seqData[0:i+1])
+        row.extend(seqData[0:i+1])
         seqMat.append(row)
       else :
         row = []
-        row.append(seqData[i-seqLen+1:i+1])
+        row.extend(seqData[i-seqLen+1:i+1])
         seqMat.append(row)
+        
         
     return seqMat
 
@@ -74,10 +75,10 @@ def dwt_single_level(seqMat,waveObj,waveMode):
     for row in seqMat:
       dwtRow = []
       cA, cD = pywt.dwt(row, wavelet=waveObj, mode=waveMode)
-      dwtRow.append(cA)
-      dwtRow.append(cD)
+      dwtRow.extend(cA)
+      dwtRow.extend(cD)
       dwtMat.append(dwtRow)
-    return dwtRow
+    return dwtMat
   
 def dwt_multi_level(seqMat,waveObj,waveMode,waveLevel):
     if waveLevel == 1 :
@@ -87,9 +88,9 @@ def dwt_multi_level(seqMat,waveObj,waveMode,waveLevel):
       for row in seqMat:
         dwtRow = []
         cA2, cD2, cD1 = pywt.wavedec(row, waveObj, mode=waveMode, level=2)
-        dwtRow.append(cA2)
-        dwtRow.append(cD2)
-        dwtRow.append(cD1)
+        dwtRow.extend(cA2)
+        dwtRow.extend(cD2)
+        dwtRow.extend(cD1)
         dwtMat.append(dwtRow)
       return dwtMat
     elif waveLevel == 3 :
@@ -97,10 +98,10 @@ def dwt_multi_level(seqMat,waveObj,waveMode,waveLevel):
       for row in seqMat:
         dwtRow = []
         cA3, cD3,cD2, cD1 = pywt.wavedec(row, waveObj, mode=waveMode, level=3)
-        dwtRow.append(cA3)
-        dwtRow.append(cD3)
-        dwtRow.append(cD2)
-        dwtRow.append(cD1)
+        dwtRow.extend(cA3)
+        dwtRow.extend(cD3)
+        dwtRow.extend(cD2)
+        dwtRow.extend(cD1)
         dwtMat.append(dwtRow)
       return dwtMat
     elif waveLevel == 4 :
@@ -108,11 +109,11 @@ def dwt_multi_level(seqMat,waveObj,waveMode,waveLevel):
       for row in seqMat:
         dwtRow = []
         cA4, cD4,cD3,cD2, cD1 = pywt.wavedec(row, waveObj, mode=waveMode, level=4)
-        dwtRow.append(cA4)
-        dwtRow.append(cD4)
-        dwtRow.append(cD3)
-        dwtRow.append(cD2)
-        dwtRow.append(cD1)
+        dwtRow.extend(cA4)
+        dwtRow.extend(cD4)
+        dwtRow.extend(cD3)
+        dwtRow.extend(cD2)
+        dwtRow.extend(cD1)
         dwtMat.append(dwtRow)
       return dwtMat
     else :
@@ -127,10 +128,14 @@ def main():
                                   features_dtype=np.float32,target_column=0)
   
   dataMat = input_datas.data
-  print('dataMat:-----------------------')
-  print(dataMat)
 
+  seqMat = construct_sequence_mat(dataMat,20)
+  print('seqMat:-----------------------')
+  print(seqMat)
 
+#  dwtMat = dwt_single_level(seqMat,'db2','symmetric')
+  dwtMat = dwt_multi_level(seqMat,'db1','symmetric',4)
+  base.write_a_dataset_to_a_csv('audt365-2018-4-2-day-dwt-ml4.csv', dwtMat)
 
 
 if __name__ == '__main__':
