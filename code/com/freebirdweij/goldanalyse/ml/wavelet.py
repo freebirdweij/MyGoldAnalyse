@@ -132,6 +132,7 @@ def main():
   seqMat = construct_sequence_mat(dataMat,20)
   print('seqMat:-----------------------')
   print(seqMat)
+  base.write_a_dataset_to_a_csv('audt365-2018-4-2-day-seq.csv', seqMat)
 
 #  dwtMat = dwt_single_level(seqMat,'db2','symmetric')
   dwtMat = dwt_multi_level(seqMat,'db1','symmetric',4)
