@@ -372,7 +372,6 @@ def run_training():
             checkpoint_file = os.path.join(FLAGS.log_dir, 'model.ckpt')
             saver.save(sess, checkpoint_file, global_step=step)
             
-            # 当不使用移动均值时，需要在估计计算前把inference中的droupout置1
             (dropout_in,dropout_low,dropout_middle,dropout_high,is_test,dropout_conv1,dropout_conv2,
              dropout_conv3,dropout_conv4,dropout_conv5,dropout_cnn,dropout_blstm,dropout_alstm) = (FLAGS.dropout_in,FLAGS.dropout_low,
              FLAGS.dropout_middle,FLAGS.dropout_high,FLAGS.is_test,FLAGS.dropout_conv1,FLAGS.dropout_conv2,
@@ -444,7 +443,6 @@ def run_training():
             test_writer.flush()
 
             FLAGS.rand_test,FLAGS.batch_size = False,batch_size
-            #恢复更改的droupout值，才不影响训练
             (FLAGS.dropout_in,FLAGS.dropout_low,FLAGS.dropout_middle,FLAGS.dropout_high,FLAGS.is_test,FLAGS.dropout_conv1,FLAGS.dropout_conv2,
              FLAGS.dropout_conv3,FLAGS.dropout_conv4,FLAGS.dropout_conv5,FLAGS.dropout_cnn,FLAGS.dropout_blstm,FLAGS.dropout_alstm) = (dropout_in,dropout_low,dropout_middle,
                 dropout_high,is_test,dropout_conv1,dropout_conv2,dropout_conv3,dropout_conv4,dropout_conv5,dropout_cnn,dropout_blstm,dropout_alstm)
@@ -752,19 +750,19 @@ if __name__ == '__main__':
   parser.add_argument(
       '--input_data_dir',
       type=str,
-      default='/home/freebirdweij/tf_works/invest',
+      default='/home/freebirdweij/tf_works/autd',
       help='Directory to put the input data.'
   )
   parser.add_argument(
       '--log_dir',
       type=str,
-      default='/home/freebirdweij/tf_works/invest/logs',
+      default='/home/freebirdweij/tf_works/autd/logs',
       help='Directory to put the log data.'
   )
   parser.add_argument(
       '--log_bak',
       type=str,
-      default='/home/freebirdweij/tf_works/invest/logs_bak',
+      default='/home/freebirdweij/tf_works/autd/logs_bak',
       help='Directory to put the log data.'
   )
   parser.add_argument(

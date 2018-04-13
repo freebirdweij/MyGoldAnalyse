@@ -289,7 +289,6 @@ def build_inputs(inputs,num_seqs, num_steps,num_inputs,is_test,is_stack):
     with tf.name_scope('lstm_inputs'):
       if is_test == True :
         num_seqs = inputs.shape[0]-num_steps
-      #以下进行输入数据变换
       if is_stack == True :
         t_tsr = []
         for i in range(num_seqs) :
@@ -308,7 +307,6 @@ def build_lables(lables,num_seqs, num_steps,num_outputs,is_test,is_stack):
     with tf.name_scope('lstm_inputs'):
       if is_test == True :
         num_seqs = lables.shape[0]-num_steps
-      #以下进行输入数据变换
       if is_stack == True :
         t_tsr = []
         for i in range(num_seqs) :
@@ -327,7 +325,6 @@ def build_lables(lables,num_seqs, num_steps,num_outputs,is_test,is_stack):
     return lstm_lables
 
 def build_lstm(inputs,num_seqs, num_steps,num_inputs,lstm_size, dropout_lstm,num_layers,is_test,is_stack,rnn_rand,rand_test,batch_size):
-    # 创建单个cell并堆叠多层
     def get_a_cell(lstm_size, dropout_lstm):
         lstm = tf.nn.rnn_cell.BasicLSTMCell(lstm_size)
         drop = tf.nn.rnn_cell.DropoutWrapper(lstm, output_keep_prob=dropout_lstm)
@@ -355,7 +352,6 @@ def build_lstm(inputs,num_seqs, num_steps,num_inputs,lstm_size, dropout_lstm,num
 
         #print('initial_state-------')
         #print(initial_state)
-        # 通过dynamic_rnn对cell展开时间维度
         #lstm_outputs, final_state = tf.nn.dynamic_rnn(cell, lstm_inputs, initial_state=initial_state)
         lstm_outputs, final_state = tf.nn.dynamic_rnn(cell, lstm_inputs,dtype=tf.float32)
 
@@ -363,7 +359,6 @@ def build_lstm(inputs,num_seqs, num_steps,num_inputs,lstm_size, dropout_lstm,num
     #lstm_outputs = tf.slice(lstm_outputs, [0,num_steps-1,0], [num_seqs,1,num_inputs], name=None)
     #lstm_outputs = tf.reshape(lstm_outputs, [-1,num_inputs])
 
-    # 通过lstm_outputs得到概率
 ##    seq_output = tf.concat(lstm_outputs, 1)
 ##    x = tf.reshape(seq_output, [-1,lstm_size])
     x=tf.transpose(lstm_outputs, [1, 0, 2])[-1]
