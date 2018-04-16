@@ -122,7 +122,7 @@ def dwt_multi_level(seqMat,waveObj,waveMode,waveLevel):
   
 def main():
     
-  DATA_INPUTS = 'audt365-2018-2-28-day.csv'
+  DATA_INPUTS = 'hjxh365-2018-4-16-day.csv'
 
   input_datas = base.load_csv_without_header(DATA_INPUTS,target_dtype=np.float32,
                                   features_dtype=np.float32,target_column=0)
@@ -132,11 +132,11 @@ def main():
   seqMat = construct_sequence_mat(dataMat,20)
   print('seqMat:-----------------------')
   print(seqMat)
-  base.write_a_dataset_to_a_csv('audt365-2018-4-2-day-seq.csv', seqMat)
+  base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-seq.csv', seqMat)
 
 #  dwtMat = dwt_single_level(seqMat,'db2','symmetric')
   dwtMat = dwt_multi_level(seqMat,'db1','symmetric',4)
-  base.write_a_dataset_to_a_csv('audt365-2018-4-2-day-dwt-ml4.csv', dwtMat)
+  base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-dwt-ml4.csv', dwtMat)
 
 
 if __name__ == '__main__':
