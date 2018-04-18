@@ -171,7 +171,7 @@ def run_training():
 
   # Tell TensorFlow that the model will be built into the default Graph.
   with tf.Graph().as_default():
-    #with tf.device('/cpu:0'):
+    with tf.device('/cpu:0'):
       # Generate placeholders for the images and labels.
       inputs_placeholder, labels_placeholder = placeholder_inputs(
           FLAGS.input_nums,FLAGS.output_nodes,FLAGS.num_steps,FLAGS.rnn_rand)

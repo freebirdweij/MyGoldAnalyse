@@ -162,9 +162,9 @@ def read_data_sets(train_dir,
     test = fake()
     return base.Datasets(train=train, validation=validation, test=test)
 
-  TRAIN_INPUTS = 'train-audt365-2018-2-28-day.csv'
+  TRAIN_INPUTS = 'train-audt365-2018-4-16-day.csv'
   #TRAIN_LABELS = 'train-labels-365-2017-4-27-day.csv'
-  TEST_INPUTS = 'test-audt365-2018-2-28-day.csv'
+  TEST_INPUTS = 'test-audt365-2018-4-16-day.csv'
   #TEST_LABELS = 'test-labels-365-2017-4-27-day.csv'
 
   if one_hot:
