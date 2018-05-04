@@ -71,7 +71,7 @@ def pca_code(dataMat,percentage=0.99):
 
 def main():
     
-  DATA_INPUTS = 'hjxh365-2018-4-16-day-clear.csv'
+  DATA_INPUTS = 'hjxh365-2018-4-16-day-plus-norm-clear-pre-pca.csv'
 
   input_datas = base.load_csv_without_header(DATA_INPUTS,target_dtype=np.float32,
                                   features_dtype=np.float32,target_column=0)
@@ -89,8 +89,8 @@ def main():
   print(pcaData)
   print('reconMat:-----------------------')
   print(reconMat)
-  base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-clear-pca.csv', pcaData)
-  base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-clear-pca-recn.csv', reconMat)
+  base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-norm-clear-pca9999.csv', pcaData)
+  base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-norm-clear-pca9999-recn.csv', reconMat)
 
 
 
