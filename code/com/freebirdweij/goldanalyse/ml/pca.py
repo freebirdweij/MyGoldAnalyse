@@ -71,7 +71,7 @@ def pca_code(dataMat,percentage=0.99):
 
 def main():
     
-  DATA_INPUTS = 'hjxh365-2018-4-16-day-plus-check1-symmetry2-pre-wavelet-dwt-ml4.csv'
+  DATA_INPUTS = 'hjxh365-2018-4-16-day-plus-check1-symmetry2-pre-pca.csv'
 
   input_datas = base.load_csv_without_header(DATA_INPUTS,target_dtype=np.float32,
                                   features_dtype=np.float32,target_column=0)
@@ -82,14 +82,14 @@ def main():
 
   k,eig_vect,mean_v = pca_code(dataMat,FLAGS.percentage)
   pcaData = np.dot(dataMat,eig_vect)
-  reconMat = np.dot(pcaData,eig_vect.T)+mean_v  #Reconstructed datas.
+  #reconMat = np.dot(pcaData,eig_vect.T)+mean_v  #Reconstructed datas.
   print('k:-----------------------')
   print(k)
   print('pcaData:-----------------------')
   print(pcaData)
   print('reconMat:-----------------------')
-  print(reconMat)
-  base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-check1-symmetry2-wavelet20-pca9999.csv', pcaData)
+  #print(reconMat)
+  base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-check1-symmetry2-pca99.csv', pcaData)
   #base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-norm-clear-pca9999-recn.csv', reconMat)
 
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--percentage',
       type=float,
-      default=0.9999,
+      default=0.99,
       help='Number of float for pca remain percentage.'
   )
   parser.add_argument(
