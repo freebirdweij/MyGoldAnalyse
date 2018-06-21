@@ -516,7 +516,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--input_data_dir',
       type=str,
-      default='/home/freebirdweij/tf_works/autd',
+      default='/home/freebirdweij/tf_works/autd/use',
       help='Directory to put the input data.'
   )
   parser.add_argument(
@@ -548,7 +548,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--is_test',
       type=bool,
-      default=False,
+      default=True,
       help='If true, is_test.',
       #action='store_true'
   )
