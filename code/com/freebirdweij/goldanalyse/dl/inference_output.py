@@ -182,6 +182,8 @@ def run_inference():
     
       sess = tf.Session()
       step = 1
+      (FLAGS.dropout_in,FLAGS.dropout_low,FLAGS.dropout_middle,FLAGS.dropout_high,FLAGS.is_test,FLAGS.dropout_conv1, FLAGS.dropout_conv2,FLAGS.dropout_conv3,
+      FLAGS.dropout_conv4,FLAGS.dropout_conv5,FLAGS.dropout_cnn,FLAGS.dropout_blstm,FLAGS.dropout_alstm) = (1.0,1.0,1.0,1.0,True,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)
       outputs,Ylogits,update_ema = gold.inference(inputs_placeholder,FLAGS.const,FLAGS.init_struct,
               FLAGS.input_nums,FLAGS.input_nodes,FLAGS.low_nodes,FLAGS.low_nums,FLAGS.middle_nodes,
               FLAGS.middle_nums,FLAGS.high_nodes,FLAGS.high_nums,FLAGS.input_fun,FLAGS.low_fun,FLAGS.middle_fun,
