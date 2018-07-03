@@ -216,7 +216,7 @@ def run_inference():
                   data_sets.train,
                   FLAGS.output_mode)
           
-      out_file = os.path.join(FLAGS.input_data_dir, FLAGS.out_file)
+      out_file = os.path.join(FLAGS.input_data_dir, 'output-hjxh365-high-class14-ori-trim16-office-2018-7-2-train')
 
       write_a_dataset_to_a_csv(out_file,datas)
           
