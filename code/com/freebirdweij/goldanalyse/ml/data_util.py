@@ -151,15 +151,40 @@ def trans_a_dataset_to_bin_value_array(dataset,bit_numbers):
   return datas
 
 def str1_to_datetime(s_date):
-  d = datetime.datetime.strptime(s_date, '%Y/%m/%d-%H:%M')
-  
-  return d
-
-def str2_to_datetime(s_date):
   d = datetime.datetime.strptime(s_date, '%Y-%m-%d %H:%M')
   
   return d
 
+def str2_to_datetime(s_date):
+  d = datetime.datetime.strptime(s_date, '%Y/%m/%d-%H:%M')
+  
+  return d
+
+def compare_time_merge_datas(a_datas,b_datas):
+  c_datas = []
+  a_date,b_date = a_datas.target,b_datas.target
+  a_data,b_data = a_datas.data,b_datas.data
+  ia,ib,ic = 0,0,0
+  group = False
+  while ia<len(a_data) and ib<len(b_data):
+    diff = str1_to_datetime(a_date) - str2_to_datetime(b_date)
+    if diff.minutes == 0 :
+      if group :
+        ic += 1
+        group = False
+      c_row = []
+      c_row.extend(ic).extend(a_date[ia]).extend(a_data[ia]).extend(b_date[ib]).extend(a_data[ib])
+      c_datas.append(c_row)
+      ia += 1
+      ib += 1
+    elif diff.minutes > 0 :
+      group = True
+      ib += 1
+    else :
+      group = True
+      ia += 1
+      
+  return c_datas
 
 def main():
 
