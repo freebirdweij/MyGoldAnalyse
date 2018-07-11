@@ -12,6 +12,7 @@ import os
 import random
 import tempfile
 import time
+import datetime
 import array 
 import numpy as np
 
@@ -149,20 +150,44 @@ def trans_a_dataset_to_bin_value_array(dataset,bit_numbers):
 
   return datas
 
+def str1_to_datetime(s_date):
+  d = datetime.datetime.strptime(s_date, '%Y/%m/%d-%H:%M')
+  
+  return d
+
+def str2_to_datetime(s_date):
+  d = datetime.datetime.strptime(s_date, '%Y-%m-%d %H:%M')
+  
+  return d
+
+
 def main():
 
 ##  data = 25.3
 ##  charArray  =  list(bin(int(data)) ) 
 ##  print(charArray)
   
-  in_file = os.path.join(FLAGS.input_data_dir, FLAGS.in_file)
-  out_file = os.path.join(FLAGS.input_data_dir, FLAGS.out_file)
+  DATA_INPUTS = '365-hjxh-2018-7-11-check-office-test.csv'
 
-  data_sets = load_csv_datas_head_row(in_file,features_dtype=np.float32)
+  input_datas = load_csv_without_header(DATA_INPUTS,target_dtype=np.str,
+                                  features_dtype=np.float32,target_column=0)
+  
+  indexMat = input_datas.target
 
-  datas = trans_a_dataset_to_bin_value_array(data_sets.data,data_sets.target)
+  print('indexMat:-----------------------')
+  print(indexMat)
+  
+  for i in range(len(indexMat)):
+    d = str2_to_datetime(indexMat[i])
+    print(d)
+ #in_file = os.path.join(FLAGS.input_data_dir, FLAGS.in_file)
+  #out_file = os.path.join(FLAGS.input_data_dir, FLAGS.out_file)
 
-  write_a_dataset_to_a_csv(out_file,datas)
+  #data_sets = load_csv_datas_head_row(in_file,features_dtype=np.float32)
+
+  #datas = trans_a_dataset_to_bin_value_array(data_sets.data,data_sets.target)
+
+  #write_a_dataset_to_a_csv(out_file,datas)
   
   
 if __name__ == '__main__':
