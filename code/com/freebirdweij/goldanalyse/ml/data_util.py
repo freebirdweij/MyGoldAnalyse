@@ -167,17 +167,51 @@ def compare_time_merge_datas(a_datas,b_datas):
   ia,ib,ic = 0,0,0
   group = False
   while ia<len(a_data) and ib<len(b_data):
-    diff = str1_to_datetime(a_date) - str2_to_datetime(b_date)
-    if diff.minutes == 0 :
+    diff = str1_to_datetime(a_date[ia]) - str2_to_datetime(b_date[ib])
+    if diff.days == 0 and diff.seconds == 0 :
       if group :
         ic += 1
         group = False
       c_row = []
-      c_row.extend(ic).extend(a_date[ia]).extend(a_data[ia]).extend(b_date[ib]).extend(a_data[ib])
+      c_row.append(str(ic))
+      c_row.append(a_date[ia])
+      c_row.extend(a_data[ia])
+      c_row.append(b_date[ib])
+      c_row.extend(b_data[ib])
       c_datas.append(c_row)
       ia += 1
       ib += 1
-    elif diff.minutes > 0 :
+    elif diff.days > 0  or (diff.days == 0 and diff.seconds > 0) :
+      group = True
+      ib += 1
+    else :
+      group = True
+      ia += 1
+      
+  return c_datas
+
+def compare_time_merge_datas2(a_datas,b_datas):
+  c_datas = []
+  a_date,b_date = a_datas.target,b_datas.target
+  a_data,b_data = a_datas.data,b_datas.data
+  ia,ib,ic = 0,0,0
+  group = False
+  while ia<len(a_data) and ib<len(b_data):
+    diff = str1_to_datetime(a_date[ia]) - str2_to_datetime(b_date[ib])
+    if (diff.days == 0 or diff.days == 1) and diff.seconds == 0 :
+      if group :
+        ic += 1
+        group = False
+      c_row = []
+      c_row.append(str(ic))
+      c_row.append(a_date[ia])
+      c_row.extend(a_data[ia])
+      c_row.append(b_date[ib])
+      c_row.extend(b_data[ib])
+      c_datas.append(c_row)
+      ia += 1
+      ib += 1
+    elif diff.days > 1 or (diff.days > 0 and diff.seconds > 0) or (diff.days == 0 and diff.seconds > 0) or (diff.days == 1 and diff.seconds > 0) :
       group = True
       ib += 1
     else :
@@ -192,19 +226,23 @@ def main():
 ##  charArray  =  list(bin(int(data)) ) 
 ##  print(charArray)
   
-  DATA_INPUTS = '365-hjxh-2018-7-11-check-office-test.csv'
+  a_in = '365-hjxh-2018-7-11-check-office-test.csv'
+  b_in = 'tdx-365-2018-7-11-check-office-test.csv'
+  c_out = 'autd-hjxh-2018-7-12-merge-office-test.csv'
 
-  input_datas = load_csv_without_header(DATA_INPUTS,target_dtype=np.str,
-                                  features_dtype=np.float32,target_column=0)
+  a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
+  b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
+  c_datas = compare_time_merge_datas(a_data,b_data)
   
-  indexMat = input_datas.target
 
-  print('indexMat:-----------------------')
-  print(indexMat)
+  print('c_datas:-----------------------')
+  print(c_datas)
   
-  for i in range(len(indexMat)):
-    d = str2_to_datetime(indexMat[i])
-    print(d)
+  write_a_dataset_to_a_csv(c_out,c_datas)
+  
+  #for i in range(len(indexMat)):
+  #  d = str2_to_datetime(indexMat[i])
+  #  print(d)
  #in_file = os.path.join(FLAGS.input_data_dir, FLAGS.in_file)
   #out_file = os.path.join(FLAGS.input_data_dir, FLAGS.out_file)
 
