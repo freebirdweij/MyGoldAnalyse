@@ -160,14 +160,56 @@ def str2_to_datetime(s_date):
   
   return d
 
-def compare_time_merge_datas(a_datas,b_datas):
+def str3_to_datetime(s_date):
+  d = datetime.datetime.strptime(s_date, '%Y-%m-%d')
+  
+  return d
+
+def str4_to_datetime(s_date):
+  d = datetime.datetime.strptime(s_date, '%Y/%m/%d')
+  
+  return d
+'''
+time_mode=1 : %Y-%m-%d %H:%M to %Y-%m-%d %H:%M
+time_mode=2 : %Y-%m-%d %H:%M to %Y/%m/%d-%H:%M
+time_mode=3 : %Y/%m/%d-%H:%M to %Y-%m-%d %H:%M
+time_mode=4 : %Y/%m/%d-%H:%M to %Y/%m/%d-%H:%M
+time_mode=5 : %Y-%m-%d to %Y-%m-%d
+time_mode=6 : %Y-%m-%d to %Y/%m/%d
+time_mode=7 : %Y/%m/%d to %Y-%m-%d
+time_mode=8 : %Y/%m/%d to %Y/%m/%d
+'''
+def diff_two_datetimes(a_date,b_date,time_mode):
+  if time_mode == 1 :
+    diff = str1_to_datetime(a_date) - str1_to_datetime(b_date)
+  elif time_mode == 2 :
+    diff = str1_to_datetime(a_date) - str2_to_datetime(b_date)
+  elif time_mode == 3 :
+    diff = str2_to_datetime(a_date) - str1_to_datetime(b_date)
+  elif time_mode == 4 :
+    diff = str2_to_datetime(a_date) - str2_to_datetime(b_date)
+  elif time_mode == 5 :
+    diff = str3_to_datetime(a_date) - str3_to_datetime(b_date)
+  elif time_mode == 6 :
+    diff = str3_to_datetime(a_date) - str4_to_datetime(b_date)
+  elif time_mode == 7 :
+    diff = str4_to_datetime(a_date) - str3_to_datetime(b_date)
+  elif time_mode == 8 :
+    diff = str4_to_datetime(a_date) - str4_to_datetime(b_date)
+  else :
+    diff = str1_to_datetime(a_date) - str1_to_datetime(b_date)
+    
+  return diff
+
+
+def compare_time_merge_datas(a_datas,b_datas,time_mode):
   c_datas = []
   a_date,b_date = a_datas.target,b_datas.target
   a_data,b_data = a_datas.data,b_datas.data
   ia,ib,ic = 0,0,0
   group = False
   while ia<len(a_data) and ib<len(b_data):
-    diff = str1_to_datetime(a_date[ia]) - str2_to_datetime(b_date[ib])
+    diff = diff_two_datetimes(a_date[ia],b_date[ib],time_mode)
     if diff.days == 0 and diff.seconds == 0 :
       if group :
         ic += 1
@@ -190,14 +232,14 @@ def compare_time_merge_datas(a_datas,b_datas):
       
   return c_datas
 
-def compare_time_merge_datas2(a_datas,b_datas):
+def compare_time_merge_datas2(a_datas,b_datas,time_mode):
   c_datas = []
   a_date,b_date = a_datas.target,b_datas.target
   a_data,b_data = a_datas.data,b_datas.data
   ia,ib,ic = 0,0,0
   group = False
   while ia<len(a_data) and ib<len(b_data):
-    diff = str1_to_datetime(a_date[ia]) - str2_to_datetime(b_date[ib])
+    diff = diff_two_datetimes(a_date[ia],b_date[ib],time_mode)
     if (diff.days == 0 or diff.days == 1) and diff.seconds == 0 :
       if group :
         ic += 1
@@ -220,6 +262,81 @@ def compare_time_merge_datas2(a_datas,b_datas):
       
   return c_datas
 
+def queue_time_merge_datas(a_datas,b_datas,time_mode):
+  c_datas = []
+  a_date,b_date = a_datas.target,b_datas.target
+  a_data,b_data = a_datas.data,b_datas.data
+  ia,ib,ic = 0,0,1
+  group = False
+  while ia<len(a_data) and ib<len(b_data):
+    diff = diff_two_datetimes(a_date[ia],b_date[ib],time_mode)
+    if diff.days == 0 and diff.seconds == 0 :
+      if group :
+        ic += 1
+        group = False
+      c_row = []
+      c_row.append(str(0))
+      c_row.append(a_date[ia])
+      c_row.extend(a_data[ia])
+      c_row.append(b_date[ib])
+      c_row.extend(b_data[ib])
+      c_datas.append(c_row)
+      ia += 1
+      ib += 1
+    elif diff.days > 0  or (diff.days == 0 and diff.seconds > 0) :
+      group = True
+      c_row = []
+      c_row.append(str(ic))
+      if time_mode == 1 or time_mode == 4 or time_mode == 5 or time_mode == 8 :
+        c_row.append(b_date[ib])
+      elif time_mode == 2 :
+        dt = str2_to_datetime(b_date[ib])
+        c_row.append(dt.strftime('%Y-%m-%d %H:%M'))
+      elif time_mode == 3 :
+        dt = str1_to_datetime(b_date[ib])
+        c_row.append(dt.strftime('%Y/%m/%d-%H:%M'))
+      elif time_mode == 6 :
+        dt = str4_to_datetime(b_date[ib])
+        c_row.append(dt.strftime('%Y-%m-%d'))
+      elif time_mode == 7 :
+        dt = str3_to_datetime(b_date[ib])
+        c_row.append(dt.strftime('%Y/%m/%d'))
+      else :
+        c_row.append(b_date[ib])
+      c_row.extend(a_data[ia])
+      c_row.append(b_date[ib])
+      c_row.extend(b_data[ib])
+      c_datas.append(c_row)
+      ib += 1
+    else :
+      group = True
+      c_row = []
+      c_row.append(str(ic))
+      c_row.append(a_date[ia])
+      c_row.extend(a_data[ia])
+      if time_mode == 1 or time_mode == 4 or time_mode == 5 or time_mode == 8 :
+        c_row.append(a_date[ia])
+      elif time_mode == 2 :
+        dt = str1_to_datetime(a_date[ia])
+        c_row.append(dt.strftime('%Y/%m/%d-%H:%M'))
+      elif time_mode == 3 :
+        dt = str2_to_datetime(a_date[ia])
+        c_row.append(dt.strftime('%Y-%m-%d %H:%M'))
+      elif time_mode == 6 :
+        dt = str3_to_datetime(a_date[ia])
+        c_row.append(dt.strftime('%Y/%m/%d'))
+      elif time_mode == 7 :
+        dt = str4_to_datetime(a_date[ia])
+        c_row.append(dt.strftime('%Y-%m-%d'))
+      else :
+        c_row.append(a_date[ia])
+      c_row.extend(b_data[ib])
+      c_datas.append(c_row)
+      ia += 1
+      
+  return c_datas
+
+
 def main():
 
 ##  data = 25.3
@@ -228,11 +345,11 @@ def main():
   
   a_in = '365-hjxh-2018-7-11-check-office-test.csv'
   b_in = 'tdx-365-2018-7-11-check-office-test.csv'
-  c_out = 'autd-hjxh-2018-7-12-merge-office-test.csv'
+  c_out = '365-tdx-pufa-hjxh-2018-7-12-day-merge-office-test.csv'
 
   a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
-  c_datas = compare_time_merge_datas(a_data,b_data)
+  c_datas = queue_time_merge_datas(a_data,b_data,5)
   
 
   print('c_datas:-----------------------')
