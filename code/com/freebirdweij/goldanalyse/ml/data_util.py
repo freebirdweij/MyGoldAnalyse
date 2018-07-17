@@ -358,13 +358,13 @@ def main():
   #a_in = 'pufa-tdx-hjxh-2018-7-16-minute-5-merge-office.csv'
   a_in = '365-hjxh-2018-7-11-check-office-test.csv'
   b_in = 'tdx-365-2018-7-11-check-office-test.csv'
-  c_out = '365-pufa-hjxh-2018-7-16-minute-60-merge-office.csv'
+  c_out = '365-hjxh-hui-2018-7-17-minute-5-merge-home.csv'
 
   #a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=0)
   a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   #c_datas = queue_time_merge_datas(a_data,b_data,2)
-  c_datas = compare_time_merge_datas2(a_data,b_data,1)
+  c_datas = compare_time_merge_datas(a_data,b_data,1)
   #c_datas = del_datas_by_index(a_data)
   
 
