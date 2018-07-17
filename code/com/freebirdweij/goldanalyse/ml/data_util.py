@@ -336,6 +336,18 @@ def queue_time_merge_datas(a_datas,b_datas,time_mode):
       
   return c_datas
 
+def del_datas_by_index(in_datas):
+  c_datas = []
+  a_index = in_datas.target
+  a_data = in_datas.data
+  
+  for i in range(len(a_index)):
+    if a_index[i] == 0 :
+      c_row = []
+      c_row.extend(a_data[i])
+      c_datas.append(c_row)
+      
+  return c_datas
 
 def main():
 
@@ -343,13 +355,17 @@ def main():
 ##  charArray  =  list(bin(int(data)) ) 
 ##  print(charArray)
   
+  #a_in = 'pufa-tdx-hjxh-2018-7-16-minute-5-merge-office.csv'
   a_in = '365-hjxh-2018-7-11-check-office-test.csv'
   b_in = 'tdx-365-2018-7-11-check-office-test.csv'
-  c_out = '365-tdx-pufa-hjxh-2018-7-12-day-merge-office-test.csv'
+  c_out = '365-pufa-hjxh-2018-7-16-minute-60-merge-office.csv'
 
+  #a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=0)
   a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
-  c_datas = queue_time_merge_datas(a_data,b_data,5)
+  #c_datas = queue_time_merge_datas(a_data,b_data,2)
+  c_datas = compare_time_merge_datas2(a_data,b_data,1)
+  #c_datas = del_datas_by_index(a_data)
   
 
   print('c_datas:-----------------------')
