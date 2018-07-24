@@ -429,6 +429,29 @@ def make_train_datas_by_interval(in_datas,interval):
       c_datas.append(d_row)
   return c_datas
 
+def group_datas_by_time_interval(in_datas):
+  c_datas = []
+  a_intervl = in_datas.target
+  a_data = in_datas.data
+  dict1 = {}
+  for i in range(len(a_intervl)):
+    if(dict1.has_key(a_intervl[i])):
+      a_row = []
+      a_row.append(a_intervl[i])
+      a_row.extend(a_data[i])
+      dict1[a_intervl[i]].append(a_row)
+    else :
+      dict1[a_intervl[i]] = []
+      a_row = []
+      a_row.append(a_intervl[i])
+      a_row.extend(a_data[i])
+      dict1[a_intervl[i]].append(a_row)
+      
+  for key in dict1 :
+    c_datas.extend(dict1[key])
+    
+  return c_datas
+
 def main():
 
 ##  data = 25.3
