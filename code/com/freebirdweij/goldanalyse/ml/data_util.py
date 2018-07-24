@@ -349,6 +349,86 @@ def del_datas_by_index(in_datas):
       
   return c_datas
 
+def clear_dirty_datas_by_index(in_datas):
+  c_datas = []
+  a_index = in_datas.target
+  a_data = in_datas.data
+  d_index = 1
+  for i in range(len(a_index)):
+    if a_index[i] == d_index :
+      d_index += 1
+    else :
+      c_row = []
+      c_row.append(a_index[i])
+      c_row.extend(a_data[i])
+      c_datas.append(c_row)
+  return c_datas
+
+def make_train_datas_by_interval(in_datas,interval):
+  c_datas = []
+  a_date = in_datas.target
+  a_data = in_datas.data
+  for i in range(len(a_date)-interval):
+      c_row = []
+      diff = diff_two_datetimes(a_date[i+interval],a_date[i],1)
+      minutes = diff.days*24*60 + diff.seconds/60      
+      c_row.append(a_date[i+interval])
+      c_row.append(a_data[i+interval][5])
+      c_row.append(a_data[i+interval][0])
+      c_row.append(minutes)
+      c_row.append(a_date[i])
+      c_row.append(a_data[i][0])
+      c_row.append(a_data[i][5])
+      c_row.append(a_data[i][9])
+      c_row.append(a_data[i][11])
+      c_row.append(a_data[i][12])
+      c_row.append(a_data[i][13])
+      c_row.append(a_data[i][14])
+      c_datas.append(c_row)
+      b_row = []
+      b_row.append(a_date[i+interval])
+      b_row.append(a_data[i+interval][6])
+      b_row.append(a_data[i+interval][1])
+      b_row.append(minutes)
+      b_row.append(a_date[i])
+      b_row.append(a_data[i][1])
+      b_row.append(a_data[i][6])
+      b_row.append(a_data[i][9])
+      b_row.append(a_data[i][11])
+      b_row.append(a_data[i][12])
+      b_row.append(a_data[i][13])
+      b_row.append(a_data[i][14])
+      c_datas.append(b_row)
+      e_row = []
+      e_row.append(a_date[i+interval])
+      e_row.append(a_data[i+interval][7])
+      e_row.append(a_data[i+interval][2])
+      e_row.append(minutes)
+      e_row.append(a_date[i])
+      e_row.append(a_data[i][2])
+      e_row.append(a_data[i][7])
+      e_row.append(a_data[i][9])
+      e_row.append(a_data[i][11])
+      e_row.append(a_data[i][12])
+      e_row.append(a_data[i][13])
+      e_row.append(a_data[i][14])
+      c_datas.append(e_row)
+      d_row = []
+      d_row.append(a_date[i+interval])
+      d_row.append(a_data[i+interval][8])
+      d_row.append(a_data[i+interval][3])
+      d_row.append(minutes)
+      d_row.append(a_date[i])
+      d_row.append(a_data[i][3])
+      d_row.append(a_data[i][8])
+      d_row.append(a_data[i][9])
+      d_row.append(a_data[i][11])
+      d_row.append(a_data[i][12])
+      d_row.append(a_data[i][13])
+      d_row.append(a_data[i][14])
+      c_datas.append(d_row)
+  return c_datas
+
 def main():
 
 ##  data = 25.3
@@ -357,15 +437,17 @@ def main():
   
   #a_in = 'pufa-tdx-hjxh-2018-7-16-minute-5-merge-office.csv'
   a_in = '365-hjxh-2018-7-11-check-office-test.csv'
-  b_in = 'tdx-365-2018-7-11-check-office-test.csv'
-  c_out = '365-hjxh-hui-2018-7-17-minute-5-merge-home.csv'
+  #b_in = 'tdx-365-2018-7-11-check-office-test.csv'
+  c_out = '365-hjxh-autd-2018-7-24-minute-5-merge-office.csv'
 
   #a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=0)
-  a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
-  b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
+  a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.str,target_column=0)
+  #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
+  #b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   #c_datas = queue_time_merge_datas(a_data,b_data,2)
-  c_datas = compare_time_merge_datas(a_data,b_data,1)
-  #c_datas = del_datas_by_index(a_data)
+  #c_datas = compare_time_merge_datas(a_data,b_data,1)
+  #c_datas = clear_dirty_datas_by_index(a_data)
+  c_datas = make_train_datas_by_interval(a_data,1)
   
 
   print('c_datas:-----------------------')
