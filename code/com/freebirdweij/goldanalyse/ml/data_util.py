@@ -375,7 +375,7 @@ def make_train_datas_by_interval(in_datas,interval):
       c_row.append(a_date[i+interval])
       c_row.append(a_data[i+interval][5])
       c_row.append(a_data[i+interval][0])
-      c_row.append(minutes)
+      c_row.append(int(minutes))
       c_row.append(a_date[i])
       c_row.append(a_data[i][0])
       c_row.append(a_data[i][5])
@@ -389,7 +389,7 @@ def make_train_datas_by_interval(in_datas,interval):
       b_row.append(a_date[i+interval])
       b_row.append(a_data[i+interval][6])
       b_row.append(a_data[i+interval][1])
-      b_row.append(minutes)
+      b_row.append(int(minutes))
       b_row.append(a_date[i])
       b_row.append(a_data[i][1])
       b_row.append(a_data[i][6])
@@ -403,7 +403,7 @@ def make_train_datas_by_interval(in_datas,interval):
       e_row.append(a_date[i+interval])
       e_row.append(a_data[i+interval][7])
       e_row.append(a_data[i+interval][2])
-      e_row.append(minutes)
+      e_row.append(int(minutes))
       e_row.append(a_date[i])
       e_row.append(a_data[i][2])
       e_row.append(a_data[i][7])
@@ -417,7 +417,7 @@ def make_train_datas_by_interval(in_datas,interval):
       d_row.append(a_date[i+interval])
       d_row.append(a_data[i+interval][8])
       d_row.append(a_data[i+interval][3])
-      d_row.append(minutes)
+      d_row.append(int(minutes))
       d_row.append(a_date[i])
       d_row.append(a_data[i][3])
       d_row.append(a_data[i][8])
@@ -435,7 +435,7 @@ def group_datas_by_time_interval(in_datas):
   a_data = in_datas.data
   dict1 = {}
   for i in range(len(a_intervl)):
-    if(dict1.has_key(a_intervl[i])):
+    if a_intervl[i] in dict1 :
       a_row = []
       a_row.append(a_intervl[i])
       a_row.extend(a_data[i])
@@ -446,8 +446,9 @@ def group_datas_by_time_interval(in_datas):
       a_row.append(a_intervl[i])
       a_row.extend(a_data[i])
       dict1[a_intervl[i]].append(a_row)
-      
-  for key in dict1 :
+  
+  #dict1 = sorted(dict1.keys())   
+  for key in sorted(dict1.keys()) :
     c_datas.extend(dict1[key])
     
   return c_datas
@@ -457,24 +458,31 @@ def main():
 ##  data = 25.3
 ##  charArray  =  list(bin(int(data)) ) 
 ##  print(charArray)
-  
-  #a_in = 'pufa-tdx-hjxh-2018-7-16-minute-5-merge-office.csv'
   a_in = '365-hjxh-2018-7-11-check-office-test.csv'
-  #b_in = 'tdx-365-2018-7-11-check-office-test.csv'
-  c_out = '365-hjxh-autd-2018-7-24-minute-5-merge-office.csv'
-
-  #a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=0)
   a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.str,target_column=0)
+  c_datas = make_train_datas_by_interval(a_data,7)
+  c_out = '365-hjxh-2018-7-11-check-office-test2.csv'
+  write_a_dataset_to_a_csv(c_out,c_datas)
+ 
+  #a_in = 'pufa-tdx-hjxh-2018-7-16-minute-5-merge-office.csv'
+  #a_in = '365-hjxh-2018-7-11-check-office-test.csv'
+  a_in = '365-hjxh-2018-7-11-check-office-test2.csv'
+  #b_in = 'tdx-365-2018-7-11-check-office-test.csv'
+  c_out = '365-hjxh-autd-2018-7-24-minute-5-group-office.csv'
+
+  a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=3)
+  #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.str,target_column=0)
   #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   #b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   #c_datas = queue_time_merge_datas(a_data,b_data,2)
   #c_datas = compare_time_merge_datas(a_data,b_data,1)
   #c_datas = clear_dirty_datas_by_index(a_data)
-  c_datas = make_train_datas_by_interval(a_data,1)
+  #c_datas = make_train_datas_by_interval(a_data,4)
+  c_datas = group_datas_by_time_interval(a_data)
   
 
   print('c_datas:-----------------------')
-  print(c_datas)
+  #print(c_datas)
   
   write_a_dataset_to_a_csv(c_out,c_datas)
   
