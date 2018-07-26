@@ -453,32 +453,71 @@ def group_datas_by_time_interval(in_datas):
     
   return c_datas
 
+def make_day_datas_by_minute_datas(in_datas):
+  c_datas = []
+  a_date = in_datas.target
+  a_data = in_datas.data
+  startdate = a_date[0]
+  op = a_data[0][0]
+  hi = a_data[0][1]
+  lo = a_data[0][2]
+  cl = a_data[0][3]
+  mo = 0
+  for i in range(len(a_date)):
+    diff = diff_two_datetimes(a_date[i], startdate, 1)
+    ed = str1_to_datetime(a_date[i])
+    if diff.days >= 1 and ed.hour > 4 :
+      c_row = []
+      sd = str1_to_datetime(startdate)
+      c_row.append(sd.strftime("%Y-%m-%d"))
+      c_row.append(op)
+      c_row.append(hi)
+      c_row.append(lo)
+      c_row.append(cl)
+      c_row.append(mo)
+      c_datas.append(c_row)
+      startdate = a_date[i]
+      op = a_data[i][0]
+      hi = a_data[i][1]
+      lo = a_data[i][2]
+      cl = a_data[i][3]
+      mo = a_data[i][4]
+    if a_data[i][1] > hi :
+      hi = a_data[i][1]
+    if a_data[i][2] < lo :
+      lo = a_data[i][2]
+    cl = a_data[i][3]
+    mo += a_data[i][4]
+    
+  return c_datas
+
 def main():
 
 ##  data = 25.3
 ##  charArray  =  list(bin(int(data)) ) 
 ##  print(charArray)
   a_in = '365-hjxh-2018-7-11-check-office-test.csv'
-  a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.str,target_column=0)
-  c_datas = make_train_datas_by_interval(a_data,7)
-  c_out = '365-hjxh-2018-7-11-check-office-test2.csv'
-  write_a_dataset_to_a_csv(c_out,c_datas)
+  #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.str,target_column=0)
+  #c_datas = make_train_datas_by_interval(a_data,7)
+  #c_out = '365-hjxh-2018-7-11-check-office-test2.csv'
+  #write_a_dataset_to_a_csv(c_out,c_datas)
  
   #a_in = 'pufa-tdx-hjxh-2018-7-16-minute-5-merge-office.csv'
   #a_in = '365-hjxh-2018-7-11-check-office-test.csv'
-  a_in = '365-hjxh-2018-7-11-check-office-test2.csv'
+  #a_in = '365-hjxh-2018-7-11-check-office-test2.csv'
   #b_in = 'tdx-365-2018-7-11-check-office-test.csv'
-  c_out = '365-hjxh-autd-2018-7-24-minute-5-group-office.csv'
+  c_out = '365-autd-2018-7-26-day-30-make-office.csv'
 
-  a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=3)
+  #a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=3)
   #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.str,target_column=0)
-  #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
+  a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   #b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   #c_datas = queue_time_merge_datas(a_data,b_data,2)
   #c_datas = compare_time_merge_datas(a_data,b_data,1)
   #c_datas = clear_dirty_datas_by_index(a_data)
   #c_datas = make_train_datas_by_interval(a_data,4)
-  c_datas = group_datas_by_time_interval(a_data)
+  #c_datas = group_datas_by_time_interval(a_data)
+  c_datas = make_day_datas_by_minute_datas(a_data)
   
 
   print('c_datas:-----------------------')
