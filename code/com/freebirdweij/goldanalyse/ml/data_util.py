@@ -464,7 +464,7 @@ def make_day_datas_by_minute_datas(in_datas):
   cl = a_data[0][3]
   mo = 0
   for i in range(len(a_date)):
-    diff = diff_two_datetimes(a_date[i], startdate, 1)
+    diff = diff_two_datetimes(str1_to_datetime(a_date[i]).strftime("%Y-%m-%d"), str1_to_datetime(startdate).strftime("%Y-%m-%d"), 5)
     ed = str1_to_datetime(a_date[i])
     if diff.days >= 1 and ed.hour > 4 :
       c_row = []
