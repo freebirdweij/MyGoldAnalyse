@@ -491,6 +491,63 @@ def make_day_datas_by_minute_datas(in_datas):
     
   return c_datas
 
+def chose_datas_by_time(in_datas,the_time):
+  c_datas = []
+  a_date = in_datas.target
+  a_data = in_datas.data
+  c_row = []
+  
+  if the_time == 1 :
+    t_dex = 0
+    n_add = False
+    for i in range(len(a_date)):
+      if a_date[i] == t_dex :
+        if n_add :
+          a_row = []
+          a_row.append(a_date[i-1])
+          a_row.extend(a_data[i-1])
+          c_datas.append(a_row)
+      else :
+        n_add = False
+        t_dex = a_date[i]
+        sd = str1_to_datetime(a_data[i][0])
+        if sd.hour >= 9 and sd.hour <= 11 :
+          n_add = True    
+  elif the_time == 2 :
+    t_dex = 0
+    n_add = False
+    for i in range(len(a_date)):
+      if a_date[i] == t_dex :
+        if n_add :
+          a_row = []
+          a_row.append(a_date[i-1])
+          a_row.extend(a_data[i-1])
+          c_datas.append(a_row)
+      else :
+        n_add = False
+        t_dex = a_date[i]
+        sd = str1_to_datetime(a_data[i][0])
+        if sd.hour >= 13 and sd.hour <= 15 :
+          n_add = True    
+  elif the_time == 3 :
+    t_dex = 0
+    n_add = False
+    for i in range(len(a_date)):
+      if a_date[i] == t_dex :
+        if n_add :
+          a_row = []
+          a_row.append(a_date[i-1])
+          a_row.extend(a_data[i-1])
+          c_datas.append(a_row)
+      else :
+        n_add = False
+        t_dex = a_date[i]
+        sd = str1_to_datetime(a_data[i][0])
+        if sd.hour >= 20 and sd.hour <= 23 :
+          n_add = True    
+    
+  return c_datas
+
 def main():
 
 ##  data = 25.3
@@ -506,18 +563,19 @@ def main():
   #a_in = '365-hjxh-2018-7-11-check-office-test.csv'
   #a_in = '365-hjxh-2018-7-11-check-office-test2.csv'
   #b_in = 'tdx-365-2018-7-11-check-office-test.csv'
-  c_out = '365-autd-2018-7-26-day-30-make-office.csv'
+  c_out = '365-autd-2018-8-7-minute-5-chose-office.csv'
 
-  #a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=3)
+  a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=0)
   #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.str,target_column=0)
-  a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
+  #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   #b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
   #c_datas = queue_time_merge_datas(a_data,b_data,2)
   #c_datas = compare_time_merge_datas(a_data,b_data,1)
   #c_datas = clear_dirty_datas_by_index(a_data)
   #c_datas = make_train_datas_by_interval(a_data,4)
   #c_datas = group_datas_by_time_interval(a_data)
-  c_datas = make_day_datas_by_minute_datas(a_data)
+  #c_datas = make_day_datas_by_minute_datas(a_data)
+  c_datas = chose_datas_by_time(a_data,3)
   
 
   print('c_datas:-----------------------')
