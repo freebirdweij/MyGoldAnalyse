@@ -336,6 +336,17 @@ def queue_time_merge_datas(a_datas,b_datas,time_mode):
       
   return c_datas
 
+def query_sequence_chose_datas(a_datas,b_datas):
+  c_datas = []
+  a_date,b_date = a_datas.target,b_datas.target
+  a_data,b_data = a_datas.data,b_datas.data
+  for i in range(len(a_date)):
+    c_row = []
+    c_row.extend(b_data[a_date[i]-1])
+    c_datas.append(c_row)
+  
+  return c_datas
+
 def del_datas_by_index(in_datas):
   c_datas = []
   a_index = in_datas.target
@@ -562,20 +573,20 @@ def main():
   #a_in = 'pufa-tdx-hjxh-2018-7-16-minute-5-merge-office.csv'
   #a_in = '365-hjxh-2018-7-11-check-office-test.csv'
   #a_in = '365-hjxh-2018-7-11-check-office-test2.csv'
-  #b_in = 'tdx-365-2018-7-11-check-office-test.csv'
-  c_out = '365-autd-2018-8-7-minute-5-chose-office.csv'
+  b_in = 'tdx-365-2018-7-11-check-office-test.csv'
+  c_out = '365-hjxh-2018-8-20-high-low-real-office.csv'
 
   a_data = load_csv_without_header(a_in,target_dtype=np.int16,features_dtype=np.str,target_column=0)
   #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.str,target_column=0)
   #a_data = load_csv_without_header(a_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
-  #b_data = load_csv_without_header(b_in,target_dtype=np.str,features_dtype=np.float32,target_column=0)
+  b_data = load_csv_without_header(b_in,target_dtype=np.int16,features_dtype=np.str,target_column=0)
   #c_datas = queue_time_merge_datas(a_data,b_data,2)
   #c_datas = compare_time_merge_datas(a_data,b_data,1)
   #c_datas = clear_dirty_datas_by_index(a_data)
   #c_datas = make_train_datas_by_interval(a_data,4)
   #c_datas = group_datas_by_time_interval(a_data)
   #c_datas = make_day_datas_by_minute_datas(a_data)
-  c_datas = chose_datas_by_time(a_data,3)
+  c_datas = query_sequence_chose_datas(a_data,b_data)
   
 
   print('c_datas:-----------------------')
