@@ -36,24 +36,30 @@ def test_SVC(*data):
   
 def main():
     
-  DATA_INPUTS = 'hjxh365-2018-4-16-day-plus-check1-symmetry2-pre-pca.csv'
+  DATA_TRAIN = 'train-autd365-2018-8-31-day-high100-round-select2-0split.csv'
+  DATA_TEST = 'test-autd365-2018-8-31-day-high100-round-select2-0split.csv'
 
-  input_datas = base.load_csv_without_header(DATA_INPUTS,target_dtype=np.float32,
+  train_datas = base.load_csv_without_header(DATA_TRAIN,target_dtype=np.int16,
+                                  features_dtype=np.float32,target_column=0)
+  test_datas = base.load_csv_without_header(DATA_TEST,target_dtype=np.int16,
                                   features_dtype=np.float32,target_column=0)
   
-  dataMat = input_datas.data
-  print('dataMat:-----------------------')
-  print(dataMat)
+  #test_linearSVC(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
+  test_SVC(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
+  
+  #dataMat = input_datas.data
+  #print('dataMat:-----------------------')
+  #print(dataMat)
 
-  pcaData = np.dot(dataMat,eig_vect)
+  #pcaData = np.dot(dataMat,eig_vect)
   #reconMat = np.dot(pcaData,eig_vect.T)+mean_v  #Reconstructed datas.
-  print('k:-----------------------')
-  print(k)
-  print('pcaData:-----------------------')
-  print(pcaData)
-  print('reconMat:-----------------------')
+  #print('k:-----------------------')
+  #print(k)
+  #print('pcaData:-----------------------')
+  #print(pcaData)
+  #print('reconMat:-----------------------')
   #print(reconMat)
-  base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-check1-symmetry2-pca99.csv', pcaData)
+  #base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-check1-symmetry2-pca99.csv', pcaData)
   #base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-norm-clear-pca9999-recn.csv', reconMat)
 
 
