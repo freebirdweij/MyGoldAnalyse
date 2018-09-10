@@ -19,6 +19,7 @@ from scipy import linalg
 from sklearn import datasets,linear_model,cross_validation,svm
 
 import com.freebirdweij.goldanalyse.ml.data_util as base
+import matplotlib.pyplot as plt
 
 def test_linearSVC(*data):
   X_train,X_test,y_train,y_test = data
@@ -27,12 +28,34 @@ def test_linearSVC(*data):
   print('Coefficients:%s,Intercept:%s'%(cls.coef_,cls.intercept_))
   print('Scors:%.2f'%cls.score(X_test, y_test))
   
-def test_SVC(*data):
+def test_SVC_linear(*data):
   X_train,X_test,y_train,y_test = data
-  cls = svm.SVC(kernel='poly')
+  cls = svm.SVC(kernel='linear')
   cls.fit(X_train, y_train)
   print('Coefficients:%s,Intercept:%s'%(cls.coef_,cls.intercept_))
   print('Scors:%.2f'%cls.score(X_test, y_test))
+  
+def test_SVC_poly(*data):
+  X_train,X_test,y_train,y_test = data
+  fig = plt.figure()
+  ### test degree ###
+  degrees = range(1,20)
+  train_scores=[]
+  test_scores=[]
+  for degree in degrees:
+    cls = svm.SVC(kernel='poly',degree=degree)
+    cls.fit(X_train, y_train)
+    train_scores.append(cls.score(X_train, y_train))
+    test_scores.append(cls.score(X_test, y_test))
+    
+  ax=fig.add_subplot(1,3,1)
+  ax.plot(degrees,train_scores,label="Training score ",marker='+')
+  ax.plot(degrees,test_scores,label="Testing score ",marker='o')
+  ax.set_title("SVC_poly_degree ")
+  ax.set_xlabel("p")
+  ax.set_ylabel("score")
+  ax.set_ylim(0,1.05)
+  ax.legend(loc="best",framealpha=0.5)
   
 def main():
     
@@ -45,7 +68,7 @@ def main():
                                   features_dtype=np.float32,target_column=0)
   
   #test_linearSVC(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
-  test_SVC(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
+  test_SVC_poly(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
   
   #dataMat = input_datas.data
   #print('dataMat:-----------------------')
