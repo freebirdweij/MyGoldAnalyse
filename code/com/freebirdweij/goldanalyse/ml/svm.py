@@ -39,7 +39,7 @@ def test_SVC_poly(*data):
   X_train,X_test,y_train,y_test = data
   fig = plt.figure()
   ### test degree ###
-  degrees = range(1,20)
+  degrees = range(1,2)
   train_scores=[]
   test_scores=[]
   for degree in degrees:
@@ -56,6 +56,54 @@ def test_SVC_poly(*data):
   ax.set_ylabel("score")
   ax.set_ylim(0,1.05)
   ax.legend(loc="best",framealpha=0.5)
+  plt.show()
+  
+def test_SVC_rbf(*data):
+  X_train,X_test,y_train,y_test = data
+  fig = plt.figure()
+  ### test degree ###
+  gammas = range(1,2)
+  train_scores=[]
+  test_scores=[]
+  for gamma in gammas:
+    cls = svm.SVC(kernel='rbf',gamma=gamma)
+    cls.fit(X_train, y_train)
+    train_scores.append(cls.score(X_train, y_train))
+    test_scores.append(cls.score(X_test, y_test))
+    
+  ax=fig.add_subplot(1,1,1)
+  ax.plot(gammas,train_scores,label="Training score ",marker='+')
+  ax.plot(gammas,test_scores,label="Testing score ",marker='o')
+  ax.set_title("SVC_rbf ")
+  ax.set_xlabel(r"$\gamma$")
+  ax.set_ylabel("score")
+  ax.set_ylim(0,1.05)
+  ax.legend(loc="best",framealpha=0.5)
+  plt.show()
+  
+def test_SVC_sigmod(*data):
+  X_train,X_test,y_train,y_test = data
+  fig = plt.figure()
+  ### test degree ###
+  gammas = range(1,2)
+  train_scores=[]
+  test_scores=[]
+  for gamma in gammas:
+    cls = svm.SVC(kernel='sigmoid',gamma=gamma,coef0=0)
+    cls.fit(X_train, y_train)
+    train_scores.append(cls.score(X_train, y_train))
+    test_scores.append(cls.score(X_test, y_test))
+    
+  ax=fig.add_subplot(1,2,1)
+  ax.plot(gammas,train_scores,label="Training score ",marker='+')
+  ax.plot(gammas,test_scores,label="Testing score ",marker='o')
+  ax.set_title("SVC_sigmoid_gamma ")
+  ax.set_xscale("log")
+  ax.set_xlabel(r"$\gamma$")
+  ax.set_ylabel("score")
+  ax.set_ylim(0,1.05)
+  ax.legend(loc="best",framealpha=0.5)
+  plt.show()
   
 def main():
     
@@ -68,7 +116,7 @@ def main():
                                   features_dtype=np.float32,target_column=0)
   
   #test_linearSVC(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
-  test_SVC_poly(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
+  test_SVC_rbf(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
   
   #dataMat = input_datas.data
   #print('dataMat:-----------------------')
