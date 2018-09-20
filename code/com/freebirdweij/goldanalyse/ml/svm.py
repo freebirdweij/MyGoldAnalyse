@@ -47,6 +47,7 @@ def test_SVC_poly(*data):
     cls.fit(X_train, y_train)
     train_scores.append(cls.score(X_train, y_train))
     test_scores.append(cls.score(X_test, y_test))
+    print('Scors:%.2f'%cls.score(X_test, y_test))
     
   ax=fig.add_subplot(1,3,1)
   ax.plot(degrees,train_scores,label="Training score ",marker='+')
@@ -66,10 +67,11 @@ def test_SVC_rbf(*data):
   train_scores=[]
   test_scores=[]
   for gamma in gammas:
-    cls = svm.SVC(kernel='rbf',gamma=gamma)
+    cls = svm.SVC(C=0.01,kernel='rbf',gamma=0.0001)
     cls.fit(X_train, y_train)
     train_scores.append(cls.score(X_train, y_train))
     test_scores.append(cls.score(X_test, y_test))
+    print('Scors:%.2f'%cls.score(X_test, y_test))
     
   ax=fig.add_subplot(1,1,1)
   ax.plot(gammas,train_scores,label="Training score ",marker='+')
@@ -93,6 +95,7 @@ def test_SVC_sigmod(*data):
     cls.fit(X_train, y_train)
     train_scores.append(cls.score(X_train, y_train))
     test_scores.append(cls.score(X_test, y_test))
+    print('Scors:%.2f'%cls.score(X_test, y_test))
     
   ax=fig.add_subplot(1,2,1)
   ax.plot(gammas,train_scores,label="Training score ",marker='+')
@@ -107,8 +110,8 @@ def test_SVC_sigmod(*data):
   
 def main():
     
-  DATA_TRAIN = 'train-autd365-2018-8-31-day-high100-round-select2-0split.csv'
-  DATA_TEST = 'test-autd365-2018-8-31-day-high100-round-select2-0split.csv'
+  DATA_TRAIN = 'train-autd365-2018-8-31-day-high100-round-date.csv'
+  DATA_TEST = 'test-autd365-2018-8-31-day-high100-round-date.csv'
 
   train_datas = base.load_csv_without_header(DATA_TRAIN,target_dtype=np.int16,
                                   features_dtype=np.float32,target_column=0)
