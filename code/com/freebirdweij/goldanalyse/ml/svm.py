@@ -17,6 +17,9 @@ import numpy as np
 from numpy import shape
 from scipy import linalg
 from sklearn import datasets,linear_model,cross_validation,svm
+from sklearn.grid_search import GridSearchCV
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 
 import com.freebirdweij.goldanalyse.ml.data_util as base
 import matplotlib.pyplot as plt
@@ -67,7 +70,7 @@ def test_SVC_rbf(*data):
   train_scores=[]
   test_scores=[]
   for gamma in gammas:
-    cls = svm.SVC(C=0.01,kernel='rbf',gamma=0.0001)
+    cls = svm.SVC(C=1e3,kernel='rbf',gamma=0.1)
     cls.fit(X_train, y_train)
     train_scores.append(cls.score(X_train, y_train))
     test_scores.append(cls.score(X_test, y_test))
@@ -82,6 +85,18 @@ def test_SVC_rbf(*data):
   ax.set_ylim(0,1.05)
   ax.legend(loc="best",framealpha=0.5)
   plt.show()
+  
+def grid_SVC_rbf(*data):
+  X_train,X_test,y_train,y_test = data
+  fig = plt.figure()
+  ### test degree ###
+  param_grid = {'C':[1e3,5e3,1e4,5e4,1e5],
+                'gamma':[0.0001,0.0005,0.001,0.005,0.01,0.1]}
+  cls = GridSearchCV(svm.SVC(kernel='rbf'),param_grid)
+  cls.fit(X_train, y_train)
+  print('Best estimotor by GridSearchCV:')
+  print(cls.best_estimator_)
+    
   
 def test_SVC_sigmod(*data):
   X_train,X_test,y_train,y_test = data
