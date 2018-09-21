@@ -66,25 +66,28 @@ def test_SVC_rbf(*data):
   X_train,X_test,y_train,y_test = data
   fig = plt.figure()
   ### test degree ###
-  gammas = range(1,2)
-  train_scores=[]
-  test_scores=[]
-  for gamma in gammas:
-    cls = svm.SVC(C=1e3,kernel='rbf',gamma=0.1)
-    cls.fit(X_train, y_train)
-    train_scores.append(cls.score(X_train, y_train))
-    test_scores.append(cls.score(X_test, y_test))
-    print('Scors:%.2f'%cls.score(X_test, y_test))
+  #gammas = range(1,2)
+  #train_scores=[]
+  #test_scores=[]
+  #for gamma in gammas:
+  cls = svm.SVC(C=1e3,kernel='rbf',gamma=0.1,probability=True)
+  cls.fit(X_train, y_train)
+  #train_scores.append(cls.score(X_train, y_train))
+  #test_scores.append(cls.score(X_test, y_test))
+  print('Scors:%.2f'%cls.score(X_test, y_test))
+  print('probability')
+  print(cls.predict(X_test))
+  return cls.predict_proba(X_test)
     
-  ax=fig.add_subplot(1,1,1)
-  ax.plot(gammas,train_scores,label="Training score ",marker='+')
-  ax.plot(gammas,test_scores,label="Testing score ",marker='o')
-  ax.set_title("SVC_rbf ")
-  ax.set_xlabel(r"$\gamma$")
-  ax.set_ylabel("score")
-  ax.set_ylim(0,1.05)
-  ax.legend(loc="best",framealpha=0.5)
-  plt.show()
+  #ax=fig.add_subplot(1,1,1)
+  #ax.plot(gammas,train_scores,label="Training score ",marker='+')
+  #ax.plot(gammas,test_scores,label="Testing score ",marker='o')
+  #ax.set_title("SVC_rbf ")
+  #ax.set_xlabel(r"$\gamma$")
+  #ax.set_ylabel("score")
+  #ax.set_ylim(0,1.05)
+  #ax.legend(loc="best",framealpha=0.5)
+  #plt.show()
   
 def grid_SVC_rbf(*data):
   X_train,X_test,y_train,y_test = data
@@ -134,7 +137,7 @@ def main():
                                   features_dtype=np.float32,target_column=0)
   
   #test_linearSVC(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
-  test_SVC_rbf(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
+  pro_date = test_SVC_rbf(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
   
   #dataMat = input_datas.data
   #print('dataMat:-----------------------')
@@ -148,7 +151,7 @@ def main():
   #print(pcaData)
   #print('reconMat:-----------------------')
   #print(reconMat)
-  #base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-check1-symmetry2-pca99.csv', pcaData)
+  base.write_a_dataset_to_a_csv('audt365-2018-2-21-day-class21-high100-round-test-svm.csv', pro_date)
   #base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-norm-clear-pca9999-recn.csv', reconMat)
 
 
