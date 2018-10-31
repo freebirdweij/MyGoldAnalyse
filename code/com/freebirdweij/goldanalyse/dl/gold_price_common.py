@@ -667,7 +667,7 @@ def inference_average(inputs,const,init_struct,input_nums,input_nodes,low_nodes,
   return outputs
   
   
-def loss(outputs, labels,regular,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
+def loss(inputs,outputs, labels,regular,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
 
   if not rnn_rand :
     if use_brnn == True :
@@ -713,6 +713,29 @@ def loss(outputs, labels,regular,output_mode,batch_size,use_brnn,num_bseqs, num_
       loss = tf.add_n(tf.get_collection('losses'))
     else:
       loss = cross_entropy  
+    return loss
+    
+  if output_mode == 'outcomes' :
+    #1.Get the first and second maximum output probabilities.
+    findMaxIndices = np.argsort(outputs)
+    twoMaxIndices=findMaxIndices[-1:-3:-1]   #Lowindex of maximum 2 .  
+    firstSecondProb=outputs[:,twoMaxIndices]
+    #2.Get the predicted integral predict predict two values
+    predictIndices = (outputs[:,0]*0+outputs[:,1]*1+outputs[:,2]*2+outputs[:,3]*3+outputs[:,4]*4+outputs[:,5]*5
+      +outputs[:,6]*6+outputs[:,7]*7+outputs[:,8]*8+outputs[:,9]*9+outputs[:,10]*10
+      +outputs[:,11]*11+outputs[:,12]*12+outputs[:,13]*13+outputs[:,14]*14+outputs[:,15]*15
+      +outputs[:,16]*16+outputs[:,17]*17+outputs[:,18]*18+outputs[:,19]*19+outputs[:,20]*20)
+    predictTwoProb = firstSecondProb[:,0]+firstSecondProb[:,1]
+    predictTwoIndices = (twoMaxIndices[:,0]*firstSecondProb[:0]+twoMaxIndices[:,1]*firstSecondProb[:,1])/predictTwoProb
+    intergalValues = (twoMaxIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
+    predictValues = (predictIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
+    predictTwoValues = (predictTwoIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]
+    #3.Get the final values
+    dotDifferenceValues =  predictTwoValues-predictTwoValues*0.1/100
+    dotFivePercent = (inputs[:,1]-inputs[:,1]*0.1/100)*0.5/100
+    with tf.variable_scope('outcomes',reuse=False):
+      W_Calibrate = weight_variable()
+    probCalibateValues = dotDifferenceValues+dotFivePercent(1-firstSecondProb[:,0])*W_Calibrate   
     return loss
   
 def training(loss, learning_rate,train_mode,momentum,decay):
