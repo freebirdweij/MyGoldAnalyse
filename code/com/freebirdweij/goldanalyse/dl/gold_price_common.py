@@ -377,175 +377,269 @@ def inference(inputs,const,init_struct,input_nums,input_nodes,low_nodes,low_nums
               use_arnn,num_bseqs,num_bsteps,num_binputs,lstm_bsize, dropout_blstm,num_blayers,num_aseqs,
               num_asteps,num_ainputs,lstm_asize, dropout_alstm,num_alayers,rnn_rand,rand_test,batch_size):
 
-  update_ema_all = []
-
-  if rnn_rand == False :
-    with tf.variable_scope('In',reuse=False):
-      if use_bn == True :
-        scale = tf.Variable(tf.ones([input_nums]))
-        offset = tf.Variable(tf.zeros([input_nums]))
-        inputs, update_ema = batchnorm(inputs, offset, scale, is_test, step)
-        update_ema_all.append(update_ema)
-
-    # Use CNN
-    if use_cnn == True :
-      with tf.variable_scope('Cnn',reuse=False):
-        inputs ,update_ema_cnn = cnn_construct(inputs,need_reshape,x_length,x_width,x_deep,conv1_length,
-                    conv1_width,conv1_deep,conv2_length,conv2_width,conv2_deep,conv3_length,conv3_width,
-                    conv3_deep,conv4_length,conv4_width,conv4_deep,conv5_length,conv5_width,conv5_deep,
-                    stride_length,stride_width,pool_length,pool_width,pool_type,padding,fullconn_length,
-                    fullconn_width,fullconn_deep,dropout_conv1,dropout_conv2,dropout_conv3,dropout_conv4,
-                    dropout_conv5,dropout_cnn,use_bn_cnn,is_test,step)
-        update_ema_all.append(update_ema_cnn)
-        input_nums = fullconn_deep
-  else :
-      #inputs = None
-    if use_brnn == False :
-      inputs = tf.concat(inputs, 1)
-      inputs = tf.reshape(inputs, [-1,input_nums])
-    else :
-      use_brnn = True
-      
-  # Use BeforeRnn
-  with tf.variable_scope('BeforeRnn',reuse=False):
-    if use_brnn == True :
-      inputs = build_lstm(inputs,num_bseqs, num_bsteps,input_nums,input_nums, dropout_blstm,num_blayers,is_test,True,rnn_rand,rand_test,batch_size)
-      rnn_rand = False
+  high_update_ema_all = []
 
   # Input
-  with tf.variable_scope('Input',reuse=False):
+  with tf.variable_scope('high_Input',reuse=False):
     
     weights,biases = init_params_construct(init_struct,input_nums,input_nodes,const)
 
     add_regular(regular,regular_rate,weights)
     
-    input_layer = activation_fun_construct(inputs,input_fun,use_biases,weights,biases)
+    high_input_layer = activation_fun_construct(inputs,input_fun,use_biases,weights,biases)
 
     if dropout_in < 1 :
-      input_layer = tf.nn.dropout(input_layer, dropout_in)
+      high_input_layer = tf.nn.dropout(high_input_layer, dropout_in)
 
     if use_bn_input == True :
       scale = tf.Variable(tf.ones([input_nodes]))
       offset = tf.Variable(tf.zeros([input_nodes]))
-      input_layer, update_ema = batchnorm(input_layer, offset, scale, is_test, step)
-      update_ema_all.append(update_ema)
+      high_input_layer, high_update_ema = batchnorm(high_input_layer, offset, scale, is_test, step)
+      high_update_ema_all.append(high_update_ema)
     
-  outputs_temp = input_nodes
+  high_outputs_temp = input_nodes
   
   # Hidden_low
-  low_layer = input_layer
+  high_low_layer = high_input_layer
+  high_input_nodes = input_nodes
   if low_nums > 0 :
-    nodes_inc = int((low_nodes-input_nodes)/low_nums)
+    nodes_inc = int((low_nodes-high_input_nodes)/low_nums)
     for i in range(0,low_nums):
-      with tf.variable_scope('hidden_low'+str(i),reuse=False):
+      with tf.variable_scope('high_hidden_low'+str(i),reuse=False):
           
         if nodes_inc ==  0  : 
-          weights,biases = init_params_construct(init_struct,input_nodes,low_nodes,const)
-          input_nodes = low_nodes
-        elif abs(input_nodes-low_nodes) < abs(nodes_inc) :
-          weights,biases = init_params_construct(init_struct,input_nodes,low_nodes,const)
-          input_nodes = low_nodes
+          weights,biases = init_params_construct(init_struct,high_input_nodes,low_nodes,const)
+          high_input_nodes = low_nodes
+        elif abs(high_input_nodes-low_nodes) < abs(nodes_inc) :
+          weights,biases = init_params_construct(init_struct,high_input_nodes,low_nodes,const)
+          high_input_nodes = low_nodes
         else :
-          weights,biases = init_params_construct(init_struct,input_nodes,input_nodes+nodes_inc,const)
-          input_nodes += nodes_inc
+          weights,biases = init_params_construct(init_struct,high_input_nodes,high_input_nodes+nodes_inc,const)
+          high_input_nodes += nodes_inc
 
         add_regular(regular,regular_rate,weights)
     
-        low_layer = activation_fun_construct(low_layer,low_fun,use_biases,weights,biases)
+        high_low_layer = activation_fun_construct(high_low_layer,low_fun,use_biases,weights,biases)
 
         if dropout_low < 1 :
-          low_layer = tf.nn.dropout(low_layer, dropout_low)
+          high_low_layer = tf.nn.dropout(high_low_layer, dropout_low)
         
         if use_bn_low == True :
-          scale = tf.Variable(tf.ones([input_nodes]))
-          offset = tf.Variable(tf.zeros([input_nodes]))
-          low_layer, update_ema = batchnorm(low_layer, offset, scale, is_test, step)
-          update_ema_all.append(update_ema)
+          scale = tf.Variable(tf.ones([high_input_nodes]))
+          offset = tf.Variable(tf.zeros([high_input_nodes]))
+          high_low_layer, high_update_ema = batchnorm(high_low_layer, offset, scale, is_test, step)
+          high_update_ema_all.append(high_update_ema)
 
-    outputs_temp = input_nodes
-  low_nodes = outputs_temp
+    high_outputs_temp = high_input_nodes
+  high_low_nodes = high_outputs_temp
 
   # Hidden_middle
-  middle_layer = low_layer
+  high_middle_layer = high_low_layer
   if middle_nums > 0 :
-    nodes_inc = int((middle_nodes-low_nodes)/middle_nums)
+    nodes_inc = int((middle_nodes-high_low_nodes)/middle_nums)
     for i in range(0,middle_nums):
-      with tf.variable_scope('hidden_middle'+str(i),reuse=False):
+      with tf.variable_scope('high_hidden_middle'+str(i),reuse=False):
           
         if nodes_inc ==  0  : 
-          weights,biases = init_params_construct(init_struct,low_nodes,middle_nodes,const)
-          low_nodes = middle_nodes
-        elif abs(low_nodes-middle_nodes) < abs(nodes_inc) :
-          weights,biases = init_params_construct(init_struct,low_nodes,middle_nodes,const)
-          low_nodes = middle_nodes
+          weights,biases = init_params_construct(init_struct,high_low_nodes,middle_nodes,const)
+          high_low_nodes = middle_nodes
+        elif abs(high_low_nodes-middle_nodes) < abs(nodes_inc) :
+          weights,biases = init_params_construct(init_struct,high_low_nodes,middle_nodes,const)
+          high_low_nodes = middle_nodes
         else :
-          weights,biases = init_params_construct(init_struct,low_nodes,low_nodes+nodes_inc,const)
-          low_nodes += nodes_inc
+          weights,biases = init_params_construct(init_struct,high_low_nodes,high_low_nodes+nodes_inc,const)
+          high_low_nodes += nodes_inc
 
         add_regular(regular,regular_rate,weights)
     
-        middle_layer = activation_fun_construct(middle_layer,middle_fun,use_biases,weights,biases)
+        high_middle_layer = activation_fun_construct(high_middle_layer,middle_fun,use_biases,weights,biases)
 
         if dropout_middle < 1 :
-          middle_layer = tf.nn.dropout(middle_layer, dropout_middle)
+          high_middle_layer = tf.nn.dropout(high_middle_layer, dropout_middle)
         
         if use_bn_middle == True :
-          scale = tf.Variable(tf.ones([low_nodes]))
-          offset = tf.Variable(tf.zeros([low_nodes]))
-          middle_layer, update_ema = batchnorm(middle_layer, offset, scale, is_test, step)
-          update_ema_all.append(update_ema)
+          scale = tf.Variable(tf.ones([high_low_nodes]))
+          offset = tf.Variable(tf.zeros([high_low_nodes]))
+          high_middle_layer, high_update_ema = batchnorm(high_middle_layer, offset, scale, is_test, step)
+          high_update_ema_all.append(high_update_ema)
 
-    outputs_temp = low_nodes
-  middle_nodes = outputs_temp
+    high_outputs_temp = high_low_nodes
+  high_middle_nodes = high_outputs_temp
     
   # Hidden_high
-  high_layer = middle_layer
+  high_high_layer = high_middle_layer
   if high_nums > 0 :
-    nodes_inc = int((high_nodes-middle_nodes)/high_nums)
+    nodes_inc = int((high_nodes-high_middle_nodes)/high_nums)
     for i in range(0,high_nums):
-      with tf.variable_scope('hidden_high'+str(i),reuse=False):
+      with tf.variable_scope('high_hidden_high'+str(i),reuse=False):
           
         if nodes_inc ==  0  : 
-          weights,biases = init_params_construct(init_struct,middle_nodes,high_nodes,const)
-          middle_nodes = high_nodes
-        elif abs(middle_nodes-high_nodes) < abs(nodes_inc) :
-          weights,biases = init_params_construct(init_struct,middle_nodes,high_nodes,const)
-          middle_nodes = high_nodes
+          weights,biases = init_params_construct(init_struct,high_middle_nodes,high_nodes,const)
+          high_middle_nodes = high_nodes
+        elif abs(high_middle_nodes-high_nodes) < abs(nodes_inc) :
+          weights,biases = init_params_construct(init_struct,high_middle_nodes,high_nodes,const)
+          high_middle_nodes = high_nodes
         else :
-          weights,biases = init_params_construct(init_struct,middle_nodes,middle_nodes+nodes_inc,const)
-          middle_nodes += nodes_inc
+          weights,biases = init_params_construct(init_struct,high_middle_nodes,high_middle_nodes+nodes_inc,const)
+          high_middle_nodes += nodes_inc
 
         add_regular(regular,regular_rate,weights)
     
-        high_layer = activation_fun_construct(high_layer,high_fun,use_biases,weights,biases)
+        high_high_layer = activation_fun_construct(high_high_layer,high_fun,use_biases,weights,biases)
 
         if dropout_high < 1 :
-          high_layer = tf.nn.dropout(high_layer, dropout_high)
+          high_high_layer = tf.nn.dropout(high_high_layer, dropout_high)
         
         if use_bn_high == True :
-          scale = tf.Variable(tf.ones([middle_nodes]))
-          offset = tf.Variable(tf.zeros([middle_nodes]))
-          high_layer, update_ema = batchnorm(high_layer, offset, scale, is_test, step)
-          update_ema_all.append(update_ema)
+          scale = tf.Variable(tf.ones([high_middle_nodes]))
+          offset = tf.Variable(tf.zeros([high_middle_nodes]))
+          high_high_layer, high_update_ema = batchnorm(high_high_layer, offset, scale, is_test, step)
+          high_update_ema_all.append(high_update_ema)
 
-  outputs_temp = middle_nodes
-
-  # Use AfterRNN
-  with tf.variable_scope('AfterRNN',reuse=False):
-    if use_arnn == True :
-      high_layer = build_lstm(high_layer,num_aseqs, num_asteps,outputs_temp,outputs_temp, dropout_alstm,num_alayers,is_test,not use_brnn,rnn_rand,rand_test,batch_size)
+  high_outputs_temp = high_middle_nodes
 
   # Outputs 
-  with tf.variable_scope('outputs',reuse=False):
+  with tf.variable_scope('high_outputs',reuse=False):
       
-    weights,biases = init_params_construct(init_struct,outputs_temp,output_nodes,const)
+    weights,biases = init_params_construct(init_struct,high_outputs_temp,output_nodes,const)
 
     add_regular(regular,regular_rate,weights)
     
-    outputs,Ylogits = output_construct(high_layer,output_mode,use_biases,weights,biases)
+    high_outputs,high_Ylogits = output_construct(high_high_layer,output_mode,use_biases,weights,biases)
+
+  #Construct low price network
+  low_update_ema_all = []
+
+  # Input
+  with tf.variable_scope('low_Input',reuse=False):
+    
+    weights,biases = init_params_construct(init_struct,input_nums,input_nodes,const)
+
+    add_regular(regular,regular_rate,weights)
+    
+    low_input_layer = activation_fun_construct(inputs,input_fun,use_biases,weights,biases)
+
+    if dropout_in < 1 :
+      low_input_layer = tf.nn.dropout(low_input_layer, dropout_in)
+
+    if use_bn_input == True :
+      scale = tf.Variable(tf.ones([input_nodes]))
+      offset = tf.Variable(tf.zeros([input_nodes]))
+      low_input_layer, low_update_ema = batchnorm(low_input_layer, offset, scale, is_test, step)
+      low_update_ema_all.append(low_update_ema)
+    
+  low_outputs_temp = input_nodes
+  
+  # Hidden_low
+  low_low_layer = low_input_layer
+  low_input_nodes = input_nodes
+  if low_nums > 0 :
+    nodes_inc = int((low_nodes-low_input_nodes)/low_nums)
+    for i in range(0,low_nums):
+      with tf.variable_scope('low_hidden_low'+str(i),reuse=False):
+          
+        if nodes_inc ==  0  : 
+          weights,biases = init_params_construct(init_struct,low_input_nodes,low_nodes,const)
+          low_input_nodes = low_nodes
+        elif abs(input_nodes-low_nodes) < abs(nodes_inc) :
+          weights,biases = init_params_construct(init_struct,low_input_nodes,low_nodes,const)
+          low_input_nodes = low_nodes
+        else :
+          weights,biases = init_params_construct(init_struct,low_input_nodes,low_input_nodes+nodes_inc,const)
+          low_input_nodes += nodes_inc
+
+        add_regular(regular,regular_rate,weights)
+    
+        low_low_layer = activation_fun_construct(low_low_layer,low_fun,use_biases,weights,biases)
+
+        if dropout_low < 1 :
+          low_low_layer = tf.nn.dropout(low_low_layer, dropout_low)
+        
+        if use_bn_low == True :
+          scale = tf.Variable(tf.ones([low_input_nodes]))
+          offset = tf.Variable(tf.zeros([low_input_nodes]))
+          low_low_layer, low_update_ema = batchnorm(low_low_layer, offset, scale, is_test, step)
+          low_update_ema_all.append(low_update_ema)
+
+    low_outputs_temp = low_input_nodes
+  low_low_nodes = low_outputs_temp
+
+  # Hidden_middle
+  low_middle_layer = low_low_layer
+  if middle_nums > 0 :
+    nodes_inc = int((middle_nodes-low_low_nodes)/middle_nums)
+    for i in range(0,middle_nums):
+      with tf.variable_scope('low_hidden_middle'+str(i),reuse=False):
+          
+        if nodes_inc ==  0  : 
+          weights,biases = init_params_construct(init_struct,low_low_nodes,middle_nodes,const)
+          low_low_nodes = middle_nodes
+        elif abs(low_low_nodes-middle_nodes) < abs(nodes_inc) :
+          weights,biases = init_params_construct(init_struct,low_low_nodes,middle_nodes,const)
+          low_low_nodes = middle_nodes
+        else :
+          weights,biases = init_params_construct(init_struct,low_low_nodes,low_low_nodes+nodes_inc,const)
+          low_low_nodes += nodes_inc
+
+        add_regular(regular,regular_rate,weights)
+    
+        low_middle_layer = activation_fun_construct(low_middle_layer,middle_fun,use_biases,weights,biases)
+
+        if dropout_middle < 1 :
+          low_middle_layer = tf.nn.dropout(low_middle_layer, dropout_middle)
+        
+        if use_bn_middle == True :
+          scale = tf.Variable(tf.ones([low_low_nodes]))
+          offset = tf.Variable(tf.zeros([low_low_nodes]))
+          low_middle_layer, low_update_ema = batchnorm(low_middle_layer, offset, scale, is_test, step)
+          low_update_ema_all.append(low_update_ema)
+
+    low_outputs_temp = low_low_nodes
+  low_middle_nodes = low_outputs_temp
+    
+  # Hidden_high
+  low_high_layer = low_middle_layer
+  if high_nums > 0 :
+    nodes_inc = int((high_nodes-low_middle_nodes)/high_nums)
+    for i in range(0,high_nums):
+      with tf.variable_scope('low_hidden_high'+str(i),reuse=False):
+          
+        if nodes_inc ==  0  : 
+          weights,biases = init_params_construct(init_struct,low_middle_nodes,high_nodes,const)
+          low_middle_nodes = high_nodes
+        elif abs(low_middle_nodes-high_nodes) < abs(nodes_inc) :
+          weights,biases = init_params_construct(init_struct,low_middle_nodes,high_nodes,const)
+          low_middle_nodes = high_nodes
+        else :
+          weights,biases = init_params_construct(init_struct,low_middle_nodes,low_middle_nodes+nodes_inc,const)
+          low_middle_nodes += nodes_inc
+
+        add_regular(regular,regular_rate,weights)
+    
+        low_high_layer = activation_fun_construct(low_high_layer,high_fun,use_biases,weights,biases)
+
+        if dropout_high < 1 :
+          low_high_layer = tf.nn.dropout(low_high_layer, dropout_high)
+        
+        if use_bn_high == True :
+          scale = tf.Variable(tf.ones([low_middle_nodes]))
+          offset = tf.Variable(tf.zeros([low_middle_nodes]))
+          low_high_layer, low_update_ema = batchnorm(low_high_layer, offset, scale, is_test, step)
+          low_update_ema_all.append(low_update_ema)
+
+  low_outputs_temp = low_middle_nodes
+
+  # Outputs 
+  with tf.variable_scope('low_outputs',reuse=False):
+      
+    weights,biases = init_params_construct(init_struct,low_outputs_temp,output_nodes,const)
+
+    add_regular(regular,regular_rate,weights)
+    
+    low_outputs,low_Ylogits = output_construct(low_high_layer,output_mode,use_biases,weights,biases)
 
     
-  return outputs,Ylogits,update_ema_all
+  return high_outputs,high_Ylogits,high_update_ema_all,low_outputs,low_Ylogits,low_update_ema_all
   
 def inference_average(inputs,const,init_struct,input_nums,input_nodes,low_nodes,low_nums,middle_nodes,
               middle_nums,high_nodes,high_nums,input_fun,low_fun,middle_fun,high_fun,regular,
@@ -667,81 +761,125 @@ def inference_average(inputs,const,init_struct,input_nums,input_nodes,low_nodes,
   return outputs
   
   
-def loss(inputs,outputs, labels,regular,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
+def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
 
-  if not rnn_rand :
-    if use_brnn == True :
-      #labels = build_lables(labels,num_bseqs, num_bsteps,output_nodes,is_test,True)
-      labels=tf.transpose(labels, [1, 0, 2])[-1]      
-  else :
-    labels=tf.transpose(labels, [1, 0, 2])[-1]      
-    
-##  if use_arnn == True :
-##    #labels = build_lables(labels,num_aseqs, num_asteps,output_nodes,is_test,not use_brnn)
-##    labels=tf.transpose(labels, [1, 0, 2])[-1]      
-    
-##  if rnn_rand or use_brnn or use_arnn :
-##    outputs = tf.reshape(outputs, [-1,num_bsteps,output_nodes])
-##    labels = tf.reshape(labels, [-1,num_bsteps,output_nodes])
-##    outputs = tf.concat(outputs, 0)
-##    outputs = tf.reshape(outputs, [-1,output_nodes])
-##    labels = tf.concat(labels, 0)
-##    labels = tf.reshape(labels, [-1,output_nodes])
-##    to = tf.split(outputs, num_bsteps, 0)
-##    tl = tf.split(labels, num_bsteps, 0)
-##    outputs = to[num_bsteps-1]
-##    labels = tl[num_bsteps-1]
   
   if output_mode == 'regression' :
-    mse = tf.reduce_mean(tf.square(labels-outputs))
+    high_mse = tf.reduce_mean(tf.square(labels-high_outputs))
     if regular != None:
-      tf.add_to_collection('losses',mse)
-      loss = tf.add_n(tf.get_collection('losses'))
+      tf.add_to_collection('high_losses',high_mse)
+      high_loss = tf.add_n(tf.get_collection('high_losses'))
     else:
-      loss = mse
-    return loss
+      high_loss = high_mse
+    return high_loss
   
   if output_mode == 'classes' :
     #cross_entropy = -tf.reduce_sum(labels*tf.log(outputs))
-    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=outputs, labels=labels)
-    if rnn_rand == True :
-      cross_entropy = tf.reduce_mean(cross_entropy)*batch_size
-    else :
-      cross_entropy = tf.reduce_mean(cross_entropy)*batch_size
+    high_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=high_outputs, labels=labels)
+    high_cross_entropy = tf.reduce_mean(high_cross_entropy)*batch_size
     if regular != None:
-      tf.add_to_collection('losses',cross_entropy)
-      loss = tf.add_n(tf.get_collection('losses'))
+      tf.add_to_collection('high_losses',high_cross_entropy)
+      high_loss = tf.add_n(tf.get_collection('high_losses'))
     else:
-      loss = cross_entropy  
-    return loss
+      high_loss = high_cross_entropy  
+    return high_loss
     
   if output_mode == 'outcomes' :
     #1.Get the first and second maximum output probabilities.
-    findMaxIndices = np.argsort(outputs)
-    twoMaxIndices=findMaxIndices[-1:-3:-1]   #Lowindex of maximum 2 .  
-    firstSecondProb=outputs[:,twoMaxIndices]
+    high_findMaxIndices = np.argsort(high_outputs)
+    high_twoMaxIndices=high_findMaxIndices[-1:-3:-1]   #Lowindex of maximum 2 .  
+    high_firstSecondProb=high_outputs[:,high_twoMaxIndices]
     #2.Get the predicted integral predict predict two values
-    predictIndices = (outputs[:,0]*0+outputs[:,1]*1+outputs[:,2]*2+outputs[:,3]*3+outputs[:,4]*4+outputs[:,5]*5
-      +outputs[:,6]*6+outputs[:,7]*7+outputs[:,8]*8+outputs[:,9]*9+outputs[:,10]*10
-      +outputs[:,11]*11+outputs[:,12]*12+outputs[:,13]*13+outputs[:,14]*14+outputs[:,15]*15
-      +outputs[:,16]*16+outputs[:,17]*17+outputs[:,18]*18+outputs[:,19]*19+outputs[:,20]*20)
-    predictTwoProb = firstSecondProb[:,0]+firstSecondProb[:,1]
-    predictTwoIndices = (twoMaxIndices[:,0]*firstSecondProb[:0]+twoMaxIndices[:,1]*firstSecondProb[:,1])/predictTwoProb
-    intergalValues = (twoMaxIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
-    predictValues = (predictIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
-    predictTwoValues = (predictTwoIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]
+    high_predictIndices = (high_outputs[:,0]*0+high_outputs[:,1]*1+high_outputs[:,2]*2+high_outputs[:,3]*3+high_outputs[:,4]*4+high_outputs[:,5]*5
+      +high_outputs[:,6]*6+high_outputs[:,7]*7+high_outputs[:,8]*8+high_outputs[:,9]*9+high_outputs[:,10]*10
+      +high_outputs[:,11]*11+high_outputs[:,12]*12+high_outputs[:,13]*13+high_outputs[:,14]*14+high_outputs[:,15]*15
+      +high_outputs[:,16]*16+high_outputs[:,17]*17+high_outputs[:,18]*18+high_outputs[:,19]*19+high_outputs[:,20]*20)
+    high_predictTwoProb = high_firstSecondProb[:,0]+high_firstSecondProb[:,1]
+    high_predictTwoIndices = (high_twoMaxIndices[:,0]*high_firstSecondProb[:0]+high_twoMaxIndices[:,1]*high_firstSecondProb[:,1])/high_predictTwoProb
+    high_intergalValues = (high_twoMaxIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
+    high_predictValues = (high_predictIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
+    high_predictTwoValues = (high_predictTwoIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]
     #3.Get the final values
-    dotDifferenceValues =  predictTwoValues-predictTwoValues*0.1/100
-    dotFivePercent = (inputs[:,1]-inputs[:,1]*0.1/100)*0.5/100
-    with tf.variable_scope('outcomes',reuse=False):
+    high_dotDifferenceValues =  high_predictTwoValues-high_predictTwoValues*0.1/100
+    high_dotFivePercent = (inputs[:,1]-inputs[:,1]*0.1/100)*0.5/100
+    with tf.variable_scope('high_outcomes',reuse=False):
       W_Calibrate = weight_variable()
-    probCalibateValues = dotDifferenceValues+dotFivePercent(1-firstSecondProb[:,0])*W_Calibrate   
-    return loss
+    high_probCalibateValues = high_dotDifferenceValues+high_dotFivePercent(1-high_firstSecondProb[:,0])*W_Calibrate   
+    
+    '''Construct low price lose'''
+    #1.Get the first and second maximum output probabilities.
+    low_findMaxIndices = np.argsort(low_outputs)
+    low_twoMaxIndices=low_findMaxIndices[-1:-3:-1]   #Lowindex of maximum 2 .  
+    low_firstSecondProb=low_outputs[:,low_twoMaxIndices]
+    #2.Get the predicted integral predict predict two values
+    low_predictIndices = (low_outputs[:,0]*0+low_outputs[:,1]*1+low_outputs[:,2]*2+low_outputs[:,3]*3+low_outputs[:,4]*4+low_outputs[:,5]*5
+      +low_outputs[:,6]*6+low_outputs[:,7]*7+low_outputs[:,8]*8+low_outputs[:,9]*9+low_outputs[:,10]*10
+      +low_outputs[:,11]*11+low_outputs[:,12]*12+low_outputs[:,13]*13+low_outputs[:,14]*14+low_outputs[:,15]*15
+      +low_outputs[:,16]*16+low_outputs[:,17]*17+low_outputs[:,18]*18+low_outputs[:,19]*19+low_outputs[:,20]*20)
+    low_predictTwoProb = low_firstSecondProb[:,0]+low_firstSecondProb[:,1]
+    low_predictTwoIndices = (low_twoMaxIndices[:,0]*low_firstSecondProb[:0]+low_twoMaxIndices[:,1]*low_firstSecondProb[:,1])/low_predictTwoProb
+    low_intergalValues = (low_twoMaxIndices[:,0]-10)*inputs[:,2]/200+inputs[:,2]    
+    low_predictValues = (low_predictIndices[:,0]-10)*inputs[:,2]/200+inputs[:,2]    
+    low_predictTwoValues = (low_predictTwoIndices[:,0]-10)*inputs[:,2]/200+inputs[:,2]
+    #3.Get the final values
+    low_dotDifferenceValues =  low_predictTwoValues-low_predictTwoValues*0.1/100
+    low_dotFivePercent = (inputs[:,2]-inputs[:,2]*0.1/100)*0.5/100
+    with tf.variable_scope('low_outcomes',reuse=False):
+      W_Calibrate = weight_variable()
+    low_probCalibateValues = low_dotDifferenceValues+low_dotFivePercent(1-low_firstSecondProb[:,0])*W_Calibrate 
+    
+    #Get differences of two predicted prices
+    diffPercentOfPredict = (high_dotDifferenceValues-low_dotDifferenceValues)*100/low_dotDifferenceValues
+    lowValueMadeByHigh = high_probCalibateValues-low_dotDifferenceValues*diffPercentOfPredict/100 
+    highValueMadeByLow = low_probCalibateValues+low_dotDifferenceValues*diffPercentOfPredict/100
+    #Get real differences and prices
+    realHighDotValue = labels[:,0]-labels[:,0]*0.1/100
+    realLowDotValue = labels[:,1]+labels[:,1]*0.1/100
+    realDiffPercent = (realHighDotValue-realLowDotValue)*100/realLowDotValue
+    #Make final two lost
+    if realHighDotValue >= high_probCalibateValues and realHighDotValue <= high_probCalibateValues+high_dotFivePercent :
+      if realLowDotValue <= lowValueMadeByHigh :
+        high_profits = diffPercentOfPredict*0.5
+      else :
+        high_profits = (realDiffPercent-0.5)*0.5*0.5
+    else :
+      if realHighDotValue > high_probCalibateValues+high_dotFivePercent :
+        high_profits = -0.25
+      else :
+        high_profits = 0
+        
+    if realLowDotValue <= low_probCalibateValues and realLowDotValue >= low_probCalibateValues-low_dotFivePercent :
+      if realHighDotValue >= highValueMadeByLow :
+        low_profits = diffPercentOfPredict*0.5
+      else :
+        low_profits = (realDiffPercent-0.5)*0.5*0.5
+    else :
+      if realLowDotValue < low_probCalibateValues-low_dotFivePercent :
+        low_profits = -0.25
+      else :
+        low_profits = 0
+        
+    high_mse = tf.reduce_mean(tf.square(realDiffPercent*0.5-high_profits))
+    if regular != None:
+      tf.add_to_collection('high_losses',high_mse)
+      high_loss = tf.add_n(tf.get_collection('high_losses'))
+    else:
+      high_loss = high_mse
+      
+    low_mse = tf.reduce_mean(tf.square(realDiffPercent*0.5-low_profits))
+    if regular != None:
+      tf.add_to_collection('low_losses',low_mse)
+      low_loss = tf.add_n(tf.get_collection('low_losses'))
+    else:
+      low_loss = low_mse
   
-def training(loss, learning_rate,train_mode,momentum,decay):
+    return high_loss,low_loss
+  
+def training(high_loss,low_loss, learning_rate,train_mode,momentum,decay):
 
   # Add a scalar summary for the snapshot loss.
-  tf.summary.scalar('loss', loss)
+  tf.summary.scalar('high_loss', high_loss)
+  tf.summary.scalar('low_loss', low_loss)
   # Create the gradient descent optimizer with the given learning rate.
   if train_mode == 'Gradient' :
     optimizer = tf.train.GradientDescentOptimizer(learning_rate)
@@ -762,9 +900,10 @@ def training(loss, learning_rate,train_mode,momentum,decay):
   global_step = tf.Variable(0, name='global_step', trainable=False)
   # Use the optimizer to apply the gradients that minimize the loss
   # (and also increment the global step counter) as a single training step.
-  train_op = optimizer.minimize(loss,global_step)
+  high_train_op = optimizer.minimize(high_loss,global_step)
+  low_train_op = optimizer.minimize(low_loss,global_step)
   
-  return train_op
+  return high_train_op,low_train_op
 
 def evaluation(outputs, labels,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
 
