@@ -326,8 +326,9 @@ def build_lables(lables,num_seqs, num_steps,num_outputs,is_test,is_stack):
 
 def build_lstm(inputs,num_seqs, num_steps,num_inputs,lstm_size, dropout_lstm,num_layers,is_test,is_stack,rnn_rand,rand_test,batch_size):
     def get_a_cell(lstm_size, dropout_lstm):
-        lstm = tf.nn.rnn_cell.BasicLSTMCell(lstm_size)
-        drop = tf.nn.rnn_cell.DropoutWrapper(lstm, output_keep_prob=dropout_lstm)
+        #lstm = tf.nn.rnn_cell.BasicLSTMCell(lstm_size)
+        #drop = tf.nn.rnn_cell.DropoutWrapper(lstm, output_keep_prob=dropout_lstm)
+        drop = None
         return drop
 
     if rnn_rand :
@@ -340,9 +341,10 @@ def build_lstm(inputs,num_seqs, num_steps,num_inputs,lstm_size, dropout_lstm,num
     else :
       lstm_inputs = build_inputs(inputs,num_seqs, num_steps,num_inputs,is_test,is_stack)
     with tf.name_scope('lstm'):
-        cell = tf.nn.rnn_cell.MultiRNNCell(
-            [get_a_cell(lstm_size, dropout_lstm) for _ in range(num_layers)]
-        )
+        cell = None
+        #cell = tf.nn.rnn_cell.MultiRNNCell(
+        #    [get_a_cell(lstm_size, dropout_lstm) for _ in range(num_layers)]
+        #)
 
         #initial_state = tf.cond(is_test, lambda: cell.zero_state(5, tf.float32), lambda: cell.zero_state(num_seqs, tf.float32))
         #if rand_test :
@@ -873,7 +875,7 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
     else:
       low_loss = low_mse
   
-    return high_loss,low_loss
+    return high_loss,low_loss,high_profits,low_profits,realDiffPercent
   
 def training(high_loss,low_loss, learning_rate,train_mode,momentum,decay):
 
@@ -905,39 +907,19 @@ def training(high_loss,low_loss, learning_rate,train_mode,momentum,decay):
   
   return high_train_op,low_train_op
 
-def evaluation(outputs, labels,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
+def evaluation(high_outputs,low_outputs, labels,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
 
-  #correct_prediction = tf.abs((labels-outputs)*2/(tf.abs(labels-200)+tf.abs(outputs-200)))
-  #accuracy = 1.0-tf.reduce_mean(tf.cast(correct_prediction, "float"))
-  if not rnn_rand :
-    if use_brnn == True :
-      #labels = build_lables(labels,num_bseqs, num_bsteps,output_nodes,is_test,True)
-      labels=tf.transpose(labels,[1, 0, 2])[-1]      
-  else :
-    labels=tf.transpose(labels,[1, 0, 2])[-1]      
-    
-##  if use_arnn == True :
-##    #labels = build_lables(labels,num_aseqs, num_asteps,output_nodes,is_test,not use_brnn)
-##    labels=tf.transpose(labels,[1, 0, 2])[-1]      
-
-##  if rnn_rand or use_brnn or use_arnn :
-##    outputs = tf.reshape(outputs, [-1,num_bsteps,output_nodes])
-##    labels = tf.reshape(labels, [-1,num_bsteps,output_nodes])
-##    outputs = tf.concat(outputs, 0)
-##    outputs = tf.reshape(outputs, [-1,output_nodes])
-##    labels = tf.concat(labels, 0)
-##    labels = tf.reshape(labels, [-1,output_nodes])
-##    to = tf.split(outputs, num_bsteps, 0)
-##    tl = tf.split(labels, num_bsteps, 0)
-##    outputs = to[num_bsteps-1]
-##    labels = tl[num_bsteps-1]
   
   if output_mode == 'classes' :
-    correct_prediction = tf.equal(tf.argmax(outputs,1), tf.argmax(labels,1))
+    correct_prediction = tf.equal(tf.argmax(high_outputs,1), tf.argmax(labels,1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
   
   if output_mode == 'regression' :
-    correct_prediction = (tf.abs(labels-outputs))/labels
+    correct_prediction = (tf.abs(labels-high_outputs))/labels
     accuracy = 1.0-tf.reduce_mean(tf.cast(correct_prediction, "float"))
+  
+  if output_mode == 'outcomes' :
+    correct_prediction = (tf.abs(high_outputs+low_outputs))/labels
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
   
   return accuracy

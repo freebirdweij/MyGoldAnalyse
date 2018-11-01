@@ -10,9 +10,10 @@ import time
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
+import numpy as np
 
-import input_datas as input_data
-import gold_price as gold
+import com.freebirdweij.goldanalyse.dl.input_datas_common as input_data
+import com.freebirdweij.goldanalyse.dl.gold_price_common as gold
 
 def placeholder_inputs(input_nums,output_nodes,num_steps,rnn_rand):
   """Generate placeholder variables to represent the input tensors.
@@ -189,7 +190,7 @@ def run_training():
       #variable_averages = tf.train.ExponentialMovingAverage.__init__(decay=0.99,self=variable_averages)
       #print("trainable_variables:",tf.trainable_variables()[0])
       step = 1
-      outputs,Ylogits,update_ema = gold.inference(inputs_placeholder,FLAGS.const,FLAGS.init_struct,
+      high_outputs,high_Ylogits,high_update_ema,low_outputs,low_Ylogits,low_update_ema = gold.inference(inputs_placeholder,FLAGS.const,FLAGS.init_struct,
               FLAGS.input_nums,FLAGS.input_nodes,FLAGS.low_nodes,FLAGS.low_nums,FLAGS.middle_nodes,
               FLAGS.middle_nums,FLAGS.high_nodes,FLAGS.high_nums,FLAGS.input_fun,FLAGS.low_fun,FLAGS.middle_fun,
               FLAGS.high_fun,FLAGS.regular,FLAGS.regular_rate,FLAGS.output_nodes,FLAGS.output_mode,
@@ -206,7 +207,7 @@ def run_training():
               FLAGS.lstm_alayers,FLAGS.rnn_rand,FLAGS.rand_test,FLAGS.batch_size)
 
       # Add to the Graph the Ops for loss calculation.
-      loss = gold.loss(Ylogits, labels_placeholder,FLAGS.regular,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
+      high_loss,low_loss,high_profits,low_profits,realDiffPercent = gold.loss(high_Ylogits,low_Ylogits, labels_placeholder,FLAGS.regular,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
                        FLAGS.use_arnn,FLAGS.num_seqs, FLAGS.num_steps,FLAGS.output_nodes,FLAGS.is_test,FLAGS.rnn_rand)
 
         
@@ -216,19 +217,20 @@ def run_training():
       #decay_speed = 2000
       # learning rate decay (with batch norm)
       if FLAGS.learning_rate > 5 :
-        learning_rate = FLAGS.min_learning_rate + (FLAGS.max_learning_rate - FLAGS.min_learning_rate) * math.exp(-step/FLAGS.decay_speed)
+        learning_rate = FLAGS.min_learning_rate + (FLAGS.max_learning_rate - FLAGS.min_learning_rate) * np.math.exp(-step/FLAGS.decay_speed)
       else :
         learning_rate = FLAGS.learning_rate
 
       # Add to the Graph the Ops that calculate and apply gradients.
       if FLAGS.use_average == 'yes' :
-        train_step = gold.training(loss, learning_rate,FLAGS.train_mode,FLAGS.momentum,FLAGS.decay)
+        high_train_step,low_train_step = gold.training( high_loss,low_loss, learning_rate,FLAGS.train_mode,FLAGS.momentum,FLAGS.decay)
         variable_averages = tf.train.ExponentialMovingAverage(decay=0.99,num_updates=step)
         variables_averages_op = variable_averages.apply(tf.trainable_variables())
-        train_op = tf.group(variables_averages_op,train_step)
+        train_op = tf.group(variables_averages_op,high_train_step,low_train_step)
         saver = tf.train.Saver(variable_averages.variables_to_restore())
       else :
-        train_op = gold.training(loss, learning_rate,FLAGS.train_mode,FLAGS.momentum,FLAGS.decay)
+        high_train_step,low_train_step = gold.training( high_loss,low_loss, learning_rate,FLAGS.train_mode,FLAGS.momentum,FLAGS.decay)
+        train_op = tf.group(variables_averages_op,high_train_step,low_train_step)
         saver = tf.train.Saver()
       # Add the Op to compare the logits to the labels during evaluation.
 
@@ -272,7 +274,7 @@ def run_training():
         eval_correct = gold.evaluation(outputs_average, labels_placeholder,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
                                        FLAGS.use_arnn,FLAGS.num_seqs, FLAGS.num_steps,FLAGS.output_nodes,FLAGS.is_test,FLAGS.rnn_rand)
       else :
-        eval_correct = gold.evaluation(outputs, labels_placeholder,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
+        eval_correct = gold.evaluation(high_profits,low_profits,realDiffPercent,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
                                        FLAGS.use_arnn,FLAGS.num_seqs, FLAGS.num_steps,FLAGS.output_nodes,FLAGS.is_test,FLAGS.rnn_rand)
       
       if FLAGS.use_average == 'yes' :
@@ -284,10 +286,20 @@ def run_training():
 
       if FLAGS.output_mode == 'classes':
         labels_placeholder_max_idx = tf.argmax(labels_placeholder,1)
-        outputs_max_idx = tf.argmax(outputs,1)
-        outputs_max = tf.reduce_max(outputs)
+        outputs_max_idx = tf.argmax(high_outputs,1)
+        outputs_max = tf.reduce_max(high_outputs)
         
         tf.summary.scalar('max_probability', outputs_max)
+        #tf.summary.histogram('max_probability', outputs_max)
+      if FLAGS.output_mode == 'outcomes':
+        labels_placeholder_max_idx = tf.argmax(labels_placeholder,1)
+        high_outputs_max_idx = tf.argmax(high_outputs,1)
+        high_outputs_max = tf.reduce_max(high_outputs)
+        low_outputs_max_idx = tf.argmax(low_outputs,1)
+        low_outputs_max = tf.reduce_max(low_outputs)
+        
+        tf.summary.scalar('high_max_probability', high_outputs_max)
+        tf.summary.scalar('low_max_probability', low_outputs_max)
         #tf.summary.histogram('max_probability', outputs_max)
       
       #precision,err_meam,err_div =  do_eval2(outputs1,
@@ -327,13 +339,16 @@ def run_training():
         #_, loss_value = sess.run([train_op,loss],
         #                         feed_dict=feed_dict)
         if FLAGS.output_mode == 'classes':
-          _, loss_value,inputs_placeholder_val,labels_placeholder_val,outputs_val,outputs_use,eval_val =  sess.run([train_op,loss,inputs_placeholder,
+          _, loss_value,inputs_placeholder_val,labels_placeholder_val,outputs_val,outputs_use,eval_val =  sess.run([train_op,high_loss,inputs_placeholder,
+               labels_placeholder_max_idx,outputs_max_idx,outputs_max,eval_correct],feed_dict=feed_dict)
+        elif FLAGS.output_mode == 'outcomes':
+          _, high_loss_value,low_loss_value,inputs_placeholder_val,labels_placeholder_val,outputs_val,outputs_use,eval_val =  sess.run([train_op,high_loss,low_loss,inputs_placeholder,
                labels_placeholder_max_idx,outputs_max_idx,outputs_max,eval_correct],feed_dict=feed_dict)
         else :
-          _, loss_value,outputs_val =  sess.run([train_op,loss,outputs],feed_dict=feed_dict)
+          _, loss_value,outputs_val =  sess.run([train_op,high_loss,high_outputs],feed_dict=feed_dict)
 
         if FLAGS.use_bn == True or FLAGS.use_bn_input == True or FLAGS.use_bn_low == True or FLAGS.use_bn_middle == True or FLAGS.use_bn_high == True or FLAGS.use_bn_cnn == True:
-           sess.run([update_ema],feed_dict=feed_dict)
+           sess.run([high_update_ema,low_update_ema],feed_dict=feed_dict)
 
         duration = time.time() - start_time
 
@@ -342,6 +357,8 @@ def run_training():
           # Print status to stdout.
           if FLAGS.output_mode == 'classes' and  FLAGS.batch_size > 1 :
             print('Step %d: loss = %.2f (%.3f sec) accuracy =  %.2f' % (step, loss_value, duration,eval_val))
+          elif FLAGS.output_mode == 'outcomes' and  FLAGS.batch_size > 1 :
+            print('Step %d: high_loss = %.2f low_loss = %.2f (%.3f sec) accuracy =  %.2f' % (step, high_loss_value,low_loss_value, duration,eval_val))
           else :
             print('Step %d: loss = %.2f (%.3f sec)' % (step, loss_value, duration))
             

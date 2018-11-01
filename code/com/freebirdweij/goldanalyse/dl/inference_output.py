@@ -13,8 +13,8 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import numpy as np
 
-import input_datas as input_data
-import gold_price as gold
+import com.freebirdweij.goldanalyse.dl.input_datas_common as input_data
+import com.freebirdweij.goldanalyse.dl.gold_price_common as gold
 
 def placeholder_inputs(input_nums,output_nodes,num_steps,rnn_rand):
   """Generate placeholder variables to represent the input tensors.
