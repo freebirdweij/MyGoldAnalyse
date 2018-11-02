@@ -207,7 +207,7 @@ def run_training():
               FLAGS.lstm_alayers,FLAGS.rnn_rand,FLAGS.rand_test,FLAGS.batch_size)
 
       # Add to the Graph the Ops for loss calculation.
-      high_loss,low_loss,high_profits,low_profits,realDiffPercent = gold.loss(high_Ylogits,low_Ylogits, labels_placeholder,FLAGS.regular,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
+      high_loss,low_loss,high_profits,low_profits,realDiffPercent = gold.loss(inputs_placeholder,high_Ylogits,low_Ylogits, labels_placeholder,FLAGS.regular,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
                        FLAGS.use_arnn,FLAGS.num_seqs, FLAGS.num_steps,FLAGS.output_nodes,FLAGS.is_test,FLAGS.rnn_rand)
 
         
@@ -479,7 +479,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--learning_rate',
       type=float,
-      default=0.01,
+      default=0.001,
       help='Initial learning rate.'
   )
   parser.add_argument(
@@ -521,25 +521,25 @@ if __name__ == '__main__':
   parser.add_argument(
       '--input_nums',
       type=int,
-      default=99,
+      default=16,
       help='Number of input.'
   )
   parser.add_argument(
       '--input_nodes',
       type=int,
-      default=99,
+      default=16,
       help='Number of input_nodes.'
   )
   parser.add_argument(
       '--low_nodes',
       type=int,
-      default=99,
+      default=16,
       help='Number of low_nodes.'
   )
   parser.add_argument(
       '--low_nums',
       type=int,
-      default=0,
+      default=2,
       help='Number of low_nums.'
   )
   parser.add_argument(
@@ -569,7 +569,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--output_nodes',
       type=int,
-      default=1,
+      default=21,
       help='Number of output_nodes.'
   )
   parser.add_argument(
@@ -587,13 +587,13 @@ if __name__ == '__main__':
   parser.add_argument(
       '--input_fun',
       type=str,
-      default='relu',
+      default='tanh',
       help='Input function.'
   )
   parser.add_argument(
       '--low_fun',
       type=str,
-      default='relu',
+      default='elu',
       help='low_fun function.'
   )
   parser.add_argument(
@@ -713,7 +713,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--output_mode',
       type=str,
-      default='regression',
+      default='outcomes',
       help='Output_mode.'
   )
   parser.add_argument(
@@ -725,7 +725,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--use_biases',
       type=str,
-      default='no',
+      default='yes',
       help='use biases.'
   )
   parser.add_argument(
@@ -749,37 +749,37 @@ if __name__ == '__main__':
   parser.add_argument(
       '--batch_size',
       type=int,
-      default=10,
+      default=100,
       help='Batch size.  Must divide evenly into the dataset sizes.'
   )
   parser.add_argument(
       '--eval_size',
       type=int,
-      default=100,
+      default=5500,
       help='Batch size.  Must divide evenly into the dataset sizes.'
   )
   parser.add_argument(
       '--test_size',
       type=int,
-      default=100,
+      default=1358,
       help='Test size.  Must divide evenly into the dataset sizes.'
   )
   parser.add_argument(
       '--input_data_dir',
       type=str,
-      default='/home/freebirdweij/tf_works/autd',
+      default='/home/freebirdweij/tf_works/outtrain',
       help='Directory to put the input data.'
   )
   parser.add_argument(
       '--log_dir',
       type=str,
-      default='/home/freebirdweij/tf_works/autd/logs',
+      default='/home/freebirdweij/tf_works/outtrain/logs',
       help='Directory to put the log data.'
   )
   parser.add_argument(
       '--log_bak',
       type=str,
-      default='/home/freebirdweij/tf_works/autd/logs_bak',
+      default='/home/freebirdweij/tf_works/outtrain/logs_bak',
       help='Directory to put the log data.'
   )
   parser.add_argument(
@@ -806,14 +806,14 @@ if __name__ == '__main__':
   parser.add_argument(
       '--use_bn_input',
       type=bool,
-      default=False,
+      default=True,
       help='If true, use_bn_input.',
       #action='store_true'
   )
   parser.add_argument(
       '--use_bn_low',
       type=bool,
-      default=False,
+      default=True,
       help='If true, use_bn_low.',
       #action='store_true'
   )

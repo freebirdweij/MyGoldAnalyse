@@ -162,82 +162,41 @@ def read_data_sets(train_dir,
     test = fake()
     return base.Datasets(train=train, validation=validation, test=test)
 
-  TRAIN_INPUTS = 'train-audt365-2018-4-16-day.csv'
+  HIGH_TRAIN_INPUTS = 'train-hjxh365-day-2018-11-2-outtrain-high-ori16.csv'
+  LOW_TRAIN_INPUTS = 'train-hjxh365-day-2018-11-2-outtrain-low-ori16.csv'
   #TRAIN_LABELS = 'train-labels-365-2017-4-27-day.csv'
-  TEST_INPUTS = 'test-audt365-2018-4-16-day.csv'
+  HIGH_TEST_INPUTS = 'test-hjxh365-day-2018-11-2-outtrain-high-ori16.csv'
+  LOW_TEST_INPUTS = 'test-hjxh365-day-2018-11-2-outtrain-low-ori16.csv'
   #TEST_LABELS = 'test-labels-365-2017-4-27-day.csv'
 
   if one_hot:
-    train_datas = base.load_csv_without_header(TRAIN_INPUTS,target_dtype=numpy.uint8,
+    train_datas = base.load_csv_without_header(HIGH_TRAIN_INPUTS,target_dtype=numpy.uint8,
                                     features_dtype=numpy.float32,target_column=0)
-    test_datas = base.load_csv_without_header(TEST_INPUTS, target_dtype=numpy.uint8,
+    test_datas = base.load_csv_without_header(HIGH_TEST_INPUTS, target_dtype=numpy.uint8,
                                     features_dtype=numpy.float32,target_column=0)
   else:
-    train_datas = base.load_csv_without_header(TRAIN_INPUTS,target_dtype=numpy.float32,
+    high_train_datas = base.load_csv_without_header(HIGH_TRAIN_INPUTS,target_dtype=numpy.float32,
                                     features_dtype=numpy.float32,target_column=0)
-    test_datas = base.load_csv_without_header(TEST_INPUTS, target_dtype=numpy.float32,
+    low_train_datas = base.load_csv_without_header(LOW_TRAIN_INPUTS,target_dtype=numpy.float32,
+                                    features_dtype=numpy.float32,target_column=0)
+    high_test_datas = base.load_csv_without_header(HIGH_TEST_INPUTS, target_dtype=numpy.float32,
+                                    features_dtype=numpy.float32,target_column=0)
+    low_test_datas = base.load_csv_without_header(LOW_TEST_INPUTS, target_dtype=numpy.float32,
                                     features_dtype=numpy.float32,target_column=0)
 
-  if rnn_rand :
-##    all_inputs = train_datas.data
-##    all_labels = train_datas.target
-##    all_labels = all_labels.reshape(all_labels.shape[0],1)
-##    all_datas = tf.concat(1, [tf.cast(all_labels,tf.int32),all_inputs], name='concat')
-##    examples = all_datas.shape[0]
-##    seqs_size = examples-num_steps
-##    a_tsr = []
-##    for i in range(seqs_size) :
-##      a_seq = tf.slice(all_datas, [i,0], [num_steps,all_datas.shape[1]], name=None)
-##      a_tsr.append(a_seq)
-##    all_datas = tf.stack(a_tsr, axis=0, name='istack')
-##    numpy.random.shuffle(all_datas)
-##    all_inputs = tf.slice(all_datas, [0,0,1], [seqs_size,num_steps,all_inputs.shape[1]], name=None)
-##    all_labels = tf.slice(all_datas, [0,0,0], [seqs_size,num_steps,all_labels.shape[1]], name=None)
-##    train_inputs = new_inputs[:eval_size]
-##    train_labels = new_labels[:eval_size]
-##    test_inputs = new_inputs[eval_size:]
-##    test_labels = new_labels[eval_size:]
-    
-    all_inputs = train_datas.data
-    all_labels = train_datas.target
-    print('all_labels1:')
-    print(all_labels)
-    print(all_labels.shape)
-    examples = all_inputs.shape[0]
-    seqs_size = examples-num_steps
-    i_tsr = []
-    l_tsr = []
-    for i in range(seqs_size) :
-      i_seq = []
-      l_seq = []
-      for j in range(num_steps) :
-        #i_step = numpy.array(all_inputs[j])
-        #l_step = numpy.array(all_labels[j])
-        i_seq.append(numpy.array(all_inputs[j+i]))
-        l_seq.append(numpy.array(all_labels[j+i]))
-      i_tsr.append(numpy.array(i_seq))
-      l_tsr.append(numpy.array(l_seq))
-    all_inputs = numpy.array(i_tsr)
-    all_labels = numpy.array(l_tsr)
-    #print('all_inputs2:')
-    #print(all_inputs)
-    #print(all_inputs.shape)
-    print('all_labels2:')
-    print(all_labels)
-    print(all_labels.shape)
-    perm = numpy.arange(seqs_size)
-    numpy.random.shuffle(perm)
-    all_inputs = all_inputs[perm]
-    all_labels = all_labels[perm]
-    train_inputs = all_inputs[:eval_size]
-    train_labels = all_labels[:eval_size]
-    test_inputs = all_inputs[eval_size:]
-    test_labels = all_labels[eval_size:]
-  else :
-    train_inputs = train_datas.data
-    train_labels = train_datas.target
-    test_inputs = test_datas.data
-    test_labels = test_datas.target
+  high_train_inputs = high_train_datas.data
+  high_train_labels = high_train_datas.target
+  high_test_inputs = high_test_datas.data
+  high_test_labels = high_test_datas.target
+  low_train_inputs = low_train_datas.data
+  low_train_labels = low_train_datas.target
+  low_test_inputs = low_test_datas.data
+  low_test_labels = low_test_datas.target
+  
+  train_inputs = high_train_inputs
+  train_labels = numpy.c_[high_train_labels,low_train_labels]
+  test_inputs = high_test_inputs
+  test_labels = numpy.c_[high_test_labels,low_test_labels]
     
   
   if one_hot:

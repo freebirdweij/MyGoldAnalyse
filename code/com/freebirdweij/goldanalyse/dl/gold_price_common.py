@@ -76,6 +76,7 @@ def output_construct(inputs,input_fun,use_biases,weights,biases):
   output_struct = {
       'regression': lambda : Ylogits,
       'classes': lambda : tf.nn.softmax(Ylogits),
+      'outcomes': lambda : tf.nn.softmax(Ylogits),
   }
   
   the_layer = output_struct[input_fun]()
@@ -788,8 +789,10 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
     
   if output_mode == 'outcomes' :
     #1.Get the first and second maximum output probabilities.
-    high_findMaxIndices = np.argsort(high_outputs)
-    high_twoMaxIndices=high_findMaxIndices[-1:-3:-1]   #Lowindex of maximum 2 .  
+    print('high_outputs:')
+    print(high_outputs)
+    high_findMaxIndices = np.argsort(high_outputs,axis=1)
+    high_twoMaxIndices=high_findMaxIndices[:,-1:-3:-1]   #Lowindex of maximum 2 .  
     high_firstSecondProb=high_outputs[:,high_twoMaxIndices]
     #2.Get the predicted integral predict predict two values
     high_predictIndices = (high_outputs[:,0]*0+high_outputs[:,1]*1+high_outputs[:,2]*2+high_outputs[:,3]*3+high_outputs[:,4]*4+high_outputs[:,5]*5
@@ -797,7 +800,7 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
       +high_outputs[:,11]*11+high_outputs[:,12]*12+high_outputs[:,13]*13+high_outputs[:,14]*14+high_outputs[:,15]*15
       +high_outputs[:,16]*16+high_outputs[:,17]*17+high_outputs[:,18]*18+high_outputs[:,19]*19+high_outputs[:,20]*20)
     high_predictTwoProb = high_firstSecondProb[:,0]+high_firstSecondProb[:,1]
-    high_predictTwoIndices = (high_twoMaxIndices[:,0]*high_firstSecondProb[:0]+high_twoMaxIndices[:,1]*high_firstSecondProb[:,1])/high_predictTwoProb
+    high_predictTwoIndices = (high_twoMaxIndices[:,0]*high_firstSecondProb[:,0]+high_twoMaxIndices[:,1]*high_firstSecondProb[:,1])/high_predictTwoProb
     high_intergalValues = (high_twoMaxIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
     high_predictValues = (high_predictIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
     high_predictTwoValues = (high_predictTwoIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]
@@ -810,8 +813,8 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
     
     '''Construct low price lose'''
     #1.Get the first and second maximum output probabilities.
-    low_findMaxIndices = np.argsort(low_outputs)
-    low_twoMaxIndices=low_findMaxIndices[-1:-3:-1]   #Lowindex of maximum 2 .  
+    low_findMaxIndices = np.argsort(low_outputs,axis=1)
+    low_twoMaxIndices=low_findMaxIndices[:,-1:-3:-1]   #Lowindex of maximum 2 .  
     low_firstSecondProb=low_outputs[:,low_twoMaxIndices]
     #2.Get the predicted integral predict predict two values
     low_predictIndices = (low_outputs[:,0]*0+low_outputs[:,1]*1+low_outputs[:,2]*2+low_outputs[:,3]*3+low_outputs[:,4]*4+low_outputs[:,5]*5
@@ -819,7 +822,7 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
       +low_outputs[:,11]*11+low_outputs[:,12]*12+low_outputs[:,13]*13+low_outputs[:,14]*14+low_outputs[:,15]*15
       +low_outputs[:,16]*16+low_outputs[:,17]*17+low_outputs[:,18]*18+low_outputs[:,19]*19+low_outputs[:,20]*20)
     low_predictTwoProb = low_firstSecondProb[:,0]+low_firstSecondProb[:,1]
-    low_predictTwoIndices = (low_twoMaxIndices[:,0]*low_firstSecondProb[:0]+low_twoMaxIndices[:,1]*low_firstSecondProb[:,1])/low_predictTwoProb
+    low_predictTwoIndices = (low_twoMaxIndices[:,0]*low_firstSecondProb[:,0]+low_twoMaxIndices[:,1]*low_firstSecondProb[:,1])/low_predictTwoProb
     low_intergalValues = (low_twoMaxIndices[:,0]-10)*inputs[:,2]/200+inputs[:,2]    
     low_predictValues = (low_predictIndices[:,0]-10)*inputs[:,2]/200+inputs[:,2]    
     low_predictTwoValues = (low_predictTwoIndices[:,0]-10)*inputs[:,2]/200+inputs[:,2]
