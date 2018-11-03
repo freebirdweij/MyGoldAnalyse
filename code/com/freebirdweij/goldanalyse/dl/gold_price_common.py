@@ -85,13 +85,20 @@ def output_construct(inputs,input_fun,use_biases,weights,biases):
 
 def add_regular(regular,regular_rate,weights):
   
-  regular_struct = {
+  high_regular_struct = {
       'l1': lambda regular_rate,weights : tf.add_to_collection('losses',tf.contrib.layers.l1_regularizer(regular_rate)(weights)),
-      'l2': lambda regular_rate,weights : tf.add_to_collection('losses',tf.contrib.layers.l2_regularizer(regular_rate)(weights)),
+      'l2': lambda regular_rate,weights : tf.add_to_collection('high_losses',tf.contrib.layers.l2_regularizer(regular_rate)(weights)),
+      'l1_l2': lambda regular_rate,weights : tf.add_to_collection('losses',tf.contrib.layers.l1_l2_regularizer(regular_rate,regular_rate)(weights)),
+  }
+  
+  low_regular_struct = {
+      'l1': lambda regular_rate,weights : tf.add_to_collection('losses',tf.contrib.layers.l1_regularizer(regular_rate)(weights)),
+      'l2': lambda regular_rate,weights : tf.add_to_collection('low_losses',tf.contrib.layers.l2_regularizer(regular_rate)(weights)),
       'l1_l2': lambda regular_rate,weights : tf.add_to_collection('losses',tf.contrib.layers.l1_l2_regularizer(regular_rate,regular_rate)(weights)),
   }
 
-  regular_struct[regular](regular_rate,weights)
+  high_regular_struct[regular](regular_rate,weights)
+  low_regular_struct[regular](regular_rate,weights)
   
 
 def batchnorm(Ylogits, Offset, Scale, is_test, iteration):
@@ -831,7 +838,7 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
     low_dotFivePercent = (inputs[:,2]-inputs[:,2]*0.1/100)*0.5/100
     with tf.variable_scope('low_outcomes'):
       W_Calibrate_l = tf.get_variable('w_cali',[1],initializer=tf.constant_initializer(value=1))
-      low_probCalibateValues = low_dotDifferenceValues+low_dotFivePercent*(1-low_firstSecondProb[:,0])*W_Calibrate_l
+      low_probCalibateValues = low_dotDifferenceValues-low_dotFivePercent*(1-low_firstSecondProb[:,0])*W_Calibrate_l
     
     #Get differences of two predicted prices
     diffPercentOfPredict = (high_dotDifferenceValues-low_dotDifferenceValues)*100/low_dotDifferenceValues
@@ -936,7 +943,7 @@ def evaluation(high_outputs,low_outputs, labels,output_mode,batch_size,use_brnn,
     accuracy = 1.0-tf.reduce_mean(tf.cast(correct_prediction, "float"))
   
   if output_mode == 'outcomes' :
-    correct_prediction = (tf.abs(high_outputs+low_outputs))/labels
+    correct_prediction = (high_outputs+low_outputs)/labels
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
   
   return accuracy

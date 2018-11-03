@@ -115,7 +115,7 @@ def test_SVC_sigmod(*data):
     test_scores.append(cls.score(X_test, y_test))
     print('Scors:%.2f'%cls.score(X_test, y_test))
     
-  ax=fig.add_subplot(1,2,1)
+  ax=fig.add_subplot(1,1,1)
   ax.plot(gammas,train_scores,label="Training score ",marker='+')
   ax.plot(gammas,test_scores,label="Testing score ",marker='o')
   ax.set_title("SVC_sigmoid_gamma ")
@@ -128,16 +128,16 @@ def test_SVC_sigmod(*data):
   
 def main():
     
-  DATA_TRAIN = 'train-autd365-2018-8-31-day-high100-round-date.csv'
-  DATA_TEST = 'test-autd365-2018-8-31-day-high100-round-date.csv'
+  DATA_TRAIN = 'train-autd365-2018-8-31-day-high100-round-select2-0split.csv'
+  DATA_TEST = 'test-autd365-2018-8-31-day-high100-round-select2-0split.csv'
 
   train_datas = base.load_csv_without_header(DATA_TRAIN,target_dtype=np.int16,
                                   features_dtype=np.float32,target_column=0)
   test_datas = base.load_csv_without_header(DATA_TEST,target_dtype=np.int16,
                                   features_dtype=np.float32,target_column=0)
   
-  #test_linearSVC(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
-  pro_date = test_SVC_rbf(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
+  test_SVC_sigmod(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
+  #pro_date = test_SVC_rbf(train_datas.data,test_datas.data,train_datas.target,test_datas.target)
   
   #dataMat = input_datas.data
   #print('dataMat:-----------------------')
@@ -151,7 +151,7 @@ def main():
   #print(pcaData)
   #print('reconMat:-----------------------')
   #print(reconMat)
-  base.write_a_dataset_to_a_csv('audt365-2018-2-21-day-class21-high100-round-test-svm.csv', pro_date)
+  #base.write_a_dataset_to_a_csv('audt365-2018-2-21-day-class21-high100-round-test-svm.csv', pro_date)
   #base.write_a_dataset_to_a_csv('hjxh365-2018-4-16-day-plus-norm-clear-pca9999-recn.csv', reconMat)
 
 

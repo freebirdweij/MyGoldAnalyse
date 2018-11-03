@@ -137,13 +137,13 @@ def do_eval(sess,
     #err_div = err_div+div_tmp
     #mes_tmp = mes_tmp+tf.square(div_tmp)
   precision = float(true_correct) / num_examples
-  if output_mode == 'classes' :
+  if output_mode == 'outcomes' :
     precision = precision * FLAGS.batch_size
     true_correct = true_correct * FLAGS.batch_size
   #err_meam = float(err_meam) / num_examples
   #err_div = float(err_div) / num_examples
   #err_div = tf.sqrt(float(mes_tmp) / num_examples)
-  print('  Num examples: %d  Num correct: %0.04f  Precision @ 1: %0.04f' %
+  print('  Num examples: %d  Get values: %0.04f  Precision @ 1: %0.04f' %
         (num_examples, true_correct, precision))
 
   return precision
