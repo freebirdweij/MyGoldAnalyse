@@ -885,14 +885,14 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
              tf.where(tf.less(realLowDotValue,low_probCalibateValues-low_dotFivePercent),diffPercentOfPredict*0-0.25,
                       diffPercentOfPredict*0))
         
-    high_mse = tf.reduce_mean(tf.square(realDiffPercent*0.5-high_profits))
+    high_mse = tf.reduce_mean(realDiffPercent*0.5-high_profits)
     if regular != None:
       tf.add_to_collection('high_losses',high_mse)
       high_loss = tf.add_n(tf.get_collection('high_losses'))
     else:
       high_loss = high_mse
       
-    low_mse = tf.reduce_mean(tf.square(realDiffPercent*0.5-low_profits))
+    low_mse = tf.reduce_mean(realDiffPercent*0.5-low_profits)
     if regular != None:
       tf.add_to_collection('low_losses',low_mse)
       low_loss = tf.add_n(tf.get_collection('low_losses'))
