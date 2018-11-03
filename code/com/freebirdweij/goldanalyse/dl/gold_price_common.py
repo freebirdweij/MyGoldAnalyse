@@ -789,49 +789,49 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
     
   if output_mode == 'outcomes' :
     #1.Get the first and second maximum output probabilities.
-    print('high_outputs:')
-    print(high_outputs)
-    high_findMaxIndices = np.argsort(high_outputs,axis=1)
-    high_twoMaxIndices=high_findMaxIndices[:,-1:-3:-1]   #Lowindex of maximum 2 .  
-    high_firstSecondProb=high_outputs[:,high_twoMaxIndices]
+    #print('high_outputs:')
+    #print(high_outputs)
+    high_findMaxIndices = tf.nn.top_k(high_outputs,2)
+    high_twoMaxIndices=high_findMaxIndices.indices   #Lowindex of maximum 2 .  
+    high_firstSecondProb=high_findMaxIndices.values
     #2.Get the predicted integral predict predict two values
     high_predictIndices = (high_outputs[:,0]*0+high_outputs[:,1]*1+high_outputs[:,2]*2+high_outputs[:,3]*3+high_outputs[:,4]*4+high_outputs[:,5]*5
       +high_outputs[:,6]*6+high_outputs[:,7]*7+high_outputs[:,8]*8+high_outputs[:,9]*9+high_outputs[:,10]*10
       +high_outputs[:,11]*11+high_outputs[:,12]*12+high_outputs[:,13]*13+high_outputs[:,14]*14+high_outputs[:,15]*15
       +high_outputs[:,16]*16+high_outputs[:,17]*17+high_outputs[:,18]*18+high_outputs[:,19]*19+high_outputs[:,20]*20)
     high_predictTwoProb = high_firstSecondProb[:,0]+high_firstSecondProb[:,1]
-    high_predictTwoIndices = (high_twoMaxIndices[:,0]*high_firstSecondProb[:,0]+high_twoMaxIndices[:,1]*high_firstSecondProb[:,1])/high_predictTwoProb
-    high_intergalValues = (high_twoMaxIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
-    high_predictValues = (high_predictIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]    
-    high_predictTwoValues = (high_predictTwoIndices[:,0]-10)*inputs[:,1]/200+inputs[:,1]
+    high_predictTwoIndices = (tf.to_float(high_twoMaxIndices[:,0])*high_firstSecondProb[:,0]+tf.to_float(high_twoMaxIndices[:,1])*high_firstSecondProb[:,1])/high_predictTwoProb
+    high_intergalValues = (tf.to_float(high_twoMaxIndices[:,0])-10)*inputs[:,1]/200+inputs[:,1]    
+    high_predictValues = (high_predictIndices-10)*inputs[:,1]/200+inputs[:,1]    
+    high_predictTwoValues = (high_predictTwoIndices-10)*inputs[:,1]/200+inputs[:,1]
     #3.Get the final values
     high_dotDifferenceValues =  high_predictTwoValues-high_predictTwoValues*0.1/100
     high_dotFivePercent = (inputs[:,1]-inputs[:,1]*0.1/100)*0.5/100
-    with tf.variable_scope('high_outcomes',reuse=False):
-      W_Calibrate = weight_variable()
-    high_probCalibateValues = high_dotDifferenceValues+high_dotFivePercent(1-high_firstSecondProb[:,0])*W_Calibrate   
+    with tf.variable_scope('high_outcomes'):
+      W_Calibrate_h = tf.get_variable('w_cali',[1],initializer=tf.constant_initializer(value=1))
+      high_probCalibateValues = high_dotDifferenceValues+high_dotFivePercent*(1-high_firstSecondProb[:,0])*W_Calibrate_h   
     
     '''Construct low price lose'''
     #1.Get the first and second maximum output probabilities.
-    low_findMaxIndices = np.argsort(low_outputs,axis=1)
-    low_twoMaxIndices=low_findMaxIndices[:,-1:-3:-1]   #Lowindex of maximum 2 .  
-    low_firstSecondProb=low_outputs[:,low_twoMaxIndices]
+    low_findMaxIndices = tf.nn.top_k(low_outputs,2)
+    low_twoMaxIndices=low_findMaxIndices.indices   #Lowindex of maximum 2 .  
+    low_firstSecondProb=low_findMaxIndices.values
     #2.Get the predicted integral predict predict two values
     low_predictIndices = (low_outputs[:,0]*0+low_outputs[:,1]*1+low_outputs[:,2]*2+low_outputs[:,3]*3+low_outputs[:,4]*4+low_outputs[:,5]*5
       +low_outputs[:,6]*6+low_outputs[:,7]*7+low_outputs[:,8]*8+low_outputs[:,9]*9+low_outputs[:,10]*10
       +low_outputs[:,11]*11+low_outputs[:,12]*12+low_outputs[:,13]*13+low_outputs[:,14]*14+low_outputs[:,15]*15
       +low_outputs[:,16]*16+low_outputs[:,17]*17+low_outputs[:,18]*18+low_outputs[:,19]*19+low_outputs[:,20]*20)
     low_predictTwoProb = low_firstSecondProb[:,0]+low_firstSecondProb[:,1]
-    low_predictTwoIndices = (low_twoMaxIndices[:,0]*low_firstSecondProb[:,0]+low_twoMaxIndices[:,1]*low_firstSecondProb[:,1])/low_predictTwoProb
-    low_intergalValues = (low_twoMaxIndices[:,0]-10)*inputs[:,2]/200+inputs[:,2]    
-    low_predictValues = (low_predictIndices[:,0]-10)*inputs[:,2]/200+inputs[:,2]    
-    low_predictTwoValues = (low_predictTwoIndices[:,0]-10)*inputs[:,2]/200+inputs[:,2]
+    low_predictTwoIndices = (tf.to_float(low_twoMaxIndices[:,0])*low_firstSecondProb[:,0]+tf.to_float(low_twoMaxIndices[:,1])*low_firstSecondProb[:,1])/low_predictTwoProb
+    low_intergalValues = (tf.to_float(low_twoMaxIndices[:,0])-10)*inputs[:,2]/200+inputs[:,2]    
+    low_predictValues = (low_predictIndices-10)*inputs[:,2]/200+inputs[:,2]    
+    low_predictTwoValues = (low_predictTwoIndices-10)*inputs[:,2]/200+inputs[:,2]
     #3.Get the final values
     low_dotDifferenceValues =  low_predictTwoValues-low_predictTwoValues*0.1/100
     low_dotFivePercent = (inputs[:,2]-inputs[:,2]*0.1/100)*0.5/100
-    with tf.variable_scope('low_outcomes',reuse=False):
-      W_Calibrate = weight_variable()
-    low_probCalibateValues = low_dotDifferenceValues+low_dotFivePercent(1-low_firstSecondProb[:,0])*W_Calibrate 
+    with tf.variable_scope('low_outcomes'):
+      W_Calibrate_l = tf.get_variable('w_cali',[1],initializer=tf.constant_initializer(value=1))
+      low_probCalibateValues = low_dotDifferenceValues+low_dotFivePercent*(1-low_firstSecondProb[:,0])*W_Calibrate_l
     
     #Get differences of two predicted prices
     diffPercentOfPredict = (high_dotDifferenceValues-low_dotDifferenceValues)*100/low_dotDifferenceValues
@@ -842,7 +842,8 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
     realLowDotValue = labels[:,1]+labels[:,1]*0.1/100
     realDiffPercent = (realHighDotValue-realLowDotValue)*100/realLowDotValue
     #Make final two lost
-    if realHighDotValue >= high_probCalibateValues and realHighDotValue <= high_probCalibateValues+high_dotFivePercent :
+    
+    '''if realHighDotValue >= high_probCalibateValues and realHighDotValue <= high_probCalibateValues+high_dotFivePercent :
       if realLowDotValue <= lowValueMadeByHigh :
         high_profits = diffPercentOfPredict*0.5
       else :
@@ -851,9 +852,15 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
       if realHighDotValue > high_probCalibateValues+high_dotFivePercent :
         high_profits = -0.25
       else :
-        high_profits = 0
+        high_profits = 0'''
+    high_profits = tf.where(tf.logical_and(tf.greater_equal(realHighDotValue, high_probCalibateValues),
+                            tf.less_equal(realHighDotValue,high_probCalibateValues+high_dotFivePercent)), 
+            tf.where(tf.less_equal(realLowDotValue,lowValueMadeByHigh),diffPercentOfPredict*0.5,
+                     (realDiffPercent-0.5)*0.5*0.5),
+             tf.where(tf.greater(realHighDotValue,high_probCalibateValues+high_dotFivePercent),diffPercentOfPredict*0-0.25,
+                      diffPercentOfPredict*0))
         
-    if realLowDotValue <= low_probCalibateValues and realLowDotValue >= low_probCalibateValues-low_dotFivePercent :
+    '''if realLowDotValue <= low_probCalibateValues and realLowDotValue >= low_probCalibateValues-low_dotFivePercent :
       if realHighDotValue >= highValueMadeByLow :
         low_profits = diffPercentOfPredict*0.5
       else :
@@ -862,7 +869,14 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
       if realLowDotValue < low_probCalibateValues-low_dotFivePercent :
         low_profits = -0.25
       else :
-        low_profits = 0
+        low_profits = 0'''
+        
+    low_profits= tf.where(tf.logical_and(tf.less_equal(realLowDotValue, low_probCalibateValues),
+                            tf.greater_equal(realLowDotValue,low_probCalibateValues-low_dotFivePercent)), 
+            tf.where(tf.greater_equal(realHighDotValue,highValueMadeByLow),diffPercentOfPredict*0.5,
+                     (realDiffPercent-0.5)*0.5*0.5),
+             tf.where(tf.less(realLowDotValue,low_probCalibateValues-low_dotFivePercent),diffPercentOfPredict*0-0.25,
+                      diffPercentOfPredict*0))
         
     high_mse = tf.reduce_mean(tf.square(realDiffPercent*0.5-high_profits))
     if regular != None:

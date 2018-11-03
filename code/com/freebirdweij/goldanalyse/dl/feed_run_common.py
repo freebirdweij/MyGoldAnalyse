@@ -34,14 +34,14 @@ def placeholder_inputs(input_nums,output_nodes,num_steps,rnn_rand):
     if output_nodes == 1 :
       labels_placeholder = tf.placeholder(tf.float32, shape=(None,num_steps))
     else :
-      labels_placeholder = tf.placeholder(tf.float32, shape=(None,num_steps,output_nodes))
+      labels_placeholder = tf.placeholder(tf.float32, shape=(None,num_steps,2))
   else :
     inputs_placeholder = tf.placeholder(tf.float32, shape=(None,
                                                            input_nums))
     if output_nodes == 1 :
       labels_placeholder = tf.placeholder(tf.float32, shape=(None))
     else :
-      labels_placeholder = tf.placeholder(tf.float32, shape=(None,output_nodes))
+      labels_placeholder = tf.placeholder(tf.float32, shape=(None,2))
   return inputs_placeholder, labels_placeholder
 
 
@@ -230,7 +230,7 @@ def run_training():
         saver = tf.train.Saver(variable_averages.variables_to_restore())
       else :
         high_train_step,low_train_step = gold.training( high_loss,low_loss, learning_rate,FLAGS.train_mode,FLAGS.momentum,FLAGS.decay)
-        train_op = tf.group(variables_averages_op,high_train_step,low_train_step)
+        train_op = tf.group(high_train_step,low_train_step)
         saver = tf.train.Saver()
       # Add the Op to compare the logits to the labels during evaluation.
 
@@ -342,8 +342,8 @@ def run_training():
           _, loss_value,inputs_placeholder_val,labels_placeholder_val,outputs_val,outputs_use,eval_val =  sess.run([train_op,high_loss,inputs_placeholder,
                labels_placeholder_max_idx,outputs_max_idx,outputs_max,eval_correct],feed_dict=feed_dict)
         elif FLAGS.output_mode == 'outcomes':
-          _, high_loss_value,low_loss_value,inputs_placeholder_val,labels_placeholder_val,outputs_val,outputs_use,eval_val =  sess.run([train_op,high_loss,low_loss,inputs_placeholder,
-               labels_placeholder_max_idx,outputs_max_idx,outputs_max,eval_correct],feed_dict=feed_dict)
+          _, high_loss_value,low_loss_value,inputs_placeholder_val,eval_val =  sess.run([train_op,high_loss,low_loss,inputs_placeholder,
+               eval_correct],feed_dict=feed_dict)
         else :
           _, loss_value,outputs_val =  sess.run([train_op,high_loss,high_outputs],feed_dict=feed_dict)
 
