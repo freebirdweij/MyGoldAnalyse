@@ -207,7 +207,7 @@ def run_training():
               FLAGS.lstm_alayers,FLAGS.rnn_rand,FLAGS.rand_test,FLAGS.batch_size)
 
       # Add to the Graph the Ops for loss calculation.
-      high_loss,low_loss,high_profits,low_profits,realDiffPercent = gold.loss(inputs_placeholder,high_Ylogits,low_Ylogits, labels_placeholder,FLAGS.regular,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
+      high_loss,low_loss,high_profits,low_profits,realDiffPercent = gold.loss(inputs_placeholder,high_outputs,low_outputs, labels_placeholder,FLAGS.regular,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
                        FLAGS.use_arnn,FLAGS.num_seqs, FLAGS.num_steps,FLAGS.output_nodes,FLAGS.is_test,FLAGS.rnn_rand)
 
         

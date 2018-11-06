@@ -834,8 +834,8 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
     low_predictValues = (low_predictIndices-10)*inputs[:,2]/200+inputs[:,2]    
     low_predictTwoValues = (low_predictTwoIndices-10)*inputs[:,2]/200+inputs[:,2]
     #3.Get the final values
-    low_dotDifferenceValues =  low_predictTwoValues-low_predictTwoValues*0.1/100
-    low_dotFivePercent = (inputs[:,2]-inputs[:,2]*0.1/100)*0.5/100
+    low_dotDifferenceValues =  low_predictTwoValues+low_predictTwoValues*0.1/100
+    low_dotFivePercent = (inputs[:,2]+inputs[:,2]*0.1/100)*0.5/100
     with tf.variable_scope('low_outcomes'):
       W_Calibrate_l = tf.get_variable('w_cali',[1],initializer=tf.constant_initializer(value=1))
       low_probCalibateValues = low_dotDifferenceValues-low_dotFivePercent*(1-low_firstSecondProb[:,0])*W_Calibrate_l
