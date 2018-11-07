@@ -164,9 +164,13 @@ def read_data_sets(train_dir,
 
   HIGH_TRAIN_INPUTS = 'train-hjxh365-day-2018-11-2-outtrain-high-ori16.csv'
   LOW_TRAIN_INPUTS = 'train-hjxh365-day-2018-11-2-outtrain-low-ori16.csv'
+  HIGH_TRAIN_LABLES = 'train-hjxh365-2018-9-30-day-high200-date.csv'
+  LOW_TRAIN_LABLES = 'train-hjxh365-2018-9-30-day-low200-date.csv'
   #TRAIN_LABELS = 'train-labels-365-2017-4-27-day.csv'
   HIGH_TEST_INPUTS = 'test-hjxh365-day-2018-11-2-outtrain-high-ori16.csv'
   LOW_TEST_INPUTS = 'test-hjxh365-day-2018-11-2-outtrain-low-ori16.csv'
+  HIGH_TEST_LABLES = 'test-hjxh365-2018-9-30-day-high200-date.csv'
+  LOW_TEST_LABLES = 'test-hjxh365-2018-9-30-day-low200-date.csv'
   #TEST_LABELS = 'test-labels-365-2017-4-27-day.csv'
 
   if one_hot:
@@ -179,24 +183,43 @@ def read_data_sets(train_dir,
                                     features_dtype=numpy.float32,target_column=0)
     low_train_datas = base.load_csv_without_header(LOW_TRAIN_INPUTS,target_dtype=numpy.float32,
                                     features_dtype=numpy.float32,target_column=0)
+    high_train_labels = base.load_csv_without_header(HIGH_TRAIN_LABLES,target_dtype=numpy.uint8,
+                                    features_dtype=numpy.float32,target_column=0)
+    low_train_labels = base.load_csv_without_header(LOW_TRAIN_LABLES,target_dtype=numpy.uint8,
+                                    features_dtype=numpy.float32,target_column=0)
     high_test_datas = base.load_csv_without_header(HIGH_TEST_INPUTS, target_dtype=numpy.float32,
                                     features_dtype=numpy.float32,target_column=0)
     low_test_datas = base.load_csv_without_header(LOW_TEST_INPUTS, target_dtype=numpy.float32,
                                     features_dtype=numpy.float32,target_column=0)
+    high_test_labels = base.load_csv_without_header(HIGH_TEST_LABLES, target_dtype=numpy.uint8,
+                                    features_dtype=numpy.float32,target_column=0)
+    low_test_labels = base.load_csv_without_header(LOW_TEST_LABLES, target_dtype=numpy.uint8,
+                                    features_dtype=numpy.float32,target_column=0)
 
   high_train_inputs = high_train_datas.data
-  high_train_labels = high_train_datas.target
-  high_test_inputs = high_test_datas.data
-  high_test_labels = high_test_datas.target
-  low_train_inputs = low_train_datas.data
-  low_train_labels = low_train_datas.target
-  low_test_inputs = low_test_datas.data
-  low_test_labels = low_test_datas.target
+  high_train_values = high_train_datas.target
+  high_train_labels = high_train_labels.target
+  high_train_onehots = dense_to_one_hot(high_train_labels, output_nodes,rnn_rand)
   
+  high_test_inputs = high_test_datas.data
+  high_test_values = high_test_datas.target
+  high_test_labels = high_test_labels.target
+  high_test_onehots = dense_to_one_hot(high_test_labels, output_nodes,rnn_rand)
+  
+  low_train_inputs = low_train_datas.data
+  low_train_values = low_train_datas.target
+  low_train_labels = low_train_labels.target
+  low_train_onehots = dense_to_one_hot(low_train_labels, output_nodes,rnn_rand)
+  
+  low_test_inputs = low_test_datas.data
+  low_test_values = low_test_datas.target
+  low_test_labels = low_test_labels.target
+  low_test_onehots = dense_to_one_hot(low_test_labels, output_nodes,rnn_rand)
+   
   train_inputs = high_train_inputs
-  train_labels = numpy.c_[high_train_labels,low_train_labels]
+  train_labels = numpy.c_[high_train_values,low_train_values,high_train_onehots,low_train_onehots]
   test_inputs = high_test_inputs
-  test_labels = numpy.c_[high_test_labels,low_test_labels]
+  test_labels = numpy.c_[high_test_values,low_test_values,high_test_onehots,low_test_onehots]
     
   
   if one_hot:

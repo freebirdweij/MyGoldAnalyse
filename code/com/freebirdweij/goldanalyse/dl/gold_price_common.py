@@ -87,13 +87,13 @@ def add_regular(regular,regular_rate,weights):
   
   high_regular_struct = {
       'l1': lambda regular_rate,weights : tf.add_to_collection('losses',tf.contrib.layers.l1_regularizer(regular_rate)(weights)),
-      'l2': lambda regular_rate,weights : tf.add_to_collection('high_losses',tf.contrib.layers.l2_regularizer(regular_rate)(weights)),
+      'l2': lambda regular_rate,weights : tf.add_to_collection('high_entropy',tf.contrib.layers.l2_regularizer(regular_rate)(weights)),
       'l1_l2': lambda regular_rate,weights : tf.add_to_collection('losses',tf.contrib.layers.l1_l2_regularizer(regular_rate,regular_rate)(weights)),
   }
   
   low_regular_struct = {
       'l1': lambda regular_rate,weights : tf.add_to_collection('losses',tf.contrib.layers.l1_regularizer(regular_rate)(weights)),
-      'l2': lambda regular_rate,weights : tf.add_to_collection('low_losses',tf.contrib.layers.l2_regularizer(regular_rate)(weights)),
+      'l2': lambda regular_rate,weights : tf.add_to_collection('low_entropy',tf.contrib.layers.l2_regularizer(regular_rate)(weights)),
       'l1_l2': lambda regular_rate,weights : tf.add_to_collection('losses',tf.contrib.layers.l1_l2_regularizer(regular_rate,regular_rate)(weights)),
   }
 
@@ -771,7 +771,7 @@ def inference_average(inputs,const,init_struct,input_nums,input_nodes,low_nodes,
   return outputs
   
   
-def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
+def loss(inputs,high_outputs,low_outputs,high_Ylogits,low_Ylogits, labels,regular,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
 
   
   if output_mode == 'regression' :
@@ -795,6 +795,18 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
     return high_loss
     
   if output_mode == 'outcomes' :
+    high_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=high_Ylogits, labels=labels[:,2:23])
+    high_cross_entropy = tf.reduce_mean(high_cross_entropy)*batch_size
+    low_cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=low_Ylogits, labels=labels[:,23:44])
+    low_cross_entropy = tf.reduce_mean(low_cross_entropy)*batch_size
+    if regular != None:
+      tf.add_to_collection('high_entropy',high_cross_entropy)
+      high_entropy = tf.add_n(tf.get_collection('high_entropy'))
+      tf.add_to_collection('low_entropy',low_cross_entropy)
+      low_entropy = tf.add_n(tf.get_collection('low_entropy'))
+    else:
+      high_entropy = high_cross_entropy  
+      low_entropy = low_cross_entropy  
     #1.Get the first and second maximum output probabilities.
     #print('high_outputs:')
     #print(high_outputs)
@@ -899,13 +911,15 @@ def loss(inputs,high_outputs,low_outputs, labels,regular,output_mode,batch_size,
     else:
       low_loss = low_mse
   
-    return high_loss,low_loss,high_profits,low_profits,realDiffPercent
+    return high_loss,low_loss,high_profits,low_profits,realDiffPercent,high_entropy,low_entropy
   
-def training(high_loss,low_loss, learning_rate,train_mode,momentum,decay):
+def training(high_loss,low_loss,high_entropy,low_entropy, learning_rate,train_mode,momentum,decay):
 
   # Add a scalar summary for the snapshot loss.
   tf.summary.scalar('high_loss', high_loss)
   tf.summary.scalar('low_loss', low_loss)
+  tf.summary.scalar('high_entropy', high_entropy)
+  tf.summary.scalar('low_entropy', low_entropy)
   # Create the gradient descent optimizer with the given learning rate.
   if train_mode == 'Gradient' :
     optimizer = tf.train.GradientDescentOptimizer(learning_rate)
@@ -926,10 +940,12 @@ def training(high_loss,low_loss, learning_rate,train_mode,momentum,decay):
   global_step = tf.Variable(0, name='global_step', trainable=False)
   # Use the optimizer to apply the gradients that minimize the loss
   # (and also increment the global step counter) as a single training step.
+  high_entropy_op = optimizer.minimize(high_entropy,global_step)
+  low_entropy_op = optimizer.minimize(low_entropy,global_step)
   high_train_op = optimizer.minimize(high_loss,global_step)
   low_train_op = optimizer.minimize(low_loss,global_step)
   
-  return high_train_op,low_train_op
+  return high_entropy_op,low_entropy_op,high_train_op,low_train_op
 
 def evaluation(high_outputs,low_outputs, labels,output_mode,batch_size,use_brnn,num_bseqs, num_bsteps,use_arnn,num_aseqs, num_asteps,output_nodes,is_test,rnn_rand):
 

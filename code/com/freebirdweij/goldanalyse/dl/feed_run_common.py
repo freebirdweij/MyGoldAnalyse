@@ -34,14 +34,14 @@ def placeholder_inputs(input_nums,output_nodes,num_steps,rnn_rand):
     if output_nodes == 1 :
       labels_placeholder = tf.placeholder(tf.float32, shape=(None,num_steps))
     else :
-      labels_placeholder = tf.placeholder(tf.float32, shape=(None,num_steps,2))
+      labels_placeholder = tf.placeholder(tf.float32, shape=(None,num_steps,44))
   else :
     inputs_placeholder = tf.placeholder(tf.float32, shape=(None,
                                                            input_nums))
     if output_nodes == 1 :
       labels_placeholder = tf.placeholder(tf.float32, shape=(None))
     else :
-      labels_placeholder = tf.placeholder(tf.float32, shape=(None,2))
+      labels_placeholder = tf.placeholder(tf.float32, shape=(None,44))
   return inputs_placeholder, labels_placeholder
 
 
@@ -207,7 +207,7 @@ def run_training():
               FLAGS.lstm_alayers,FLAGS.rnn_rand,FLAGS.rand_test,FLAGS.batch_size)
 
       # Add to the Graph the Ops for loss calculation.
-      high_loss,low_loss,high_profits,low_profits,realDiffPercent = gold.loss(inputs_placeholder,high_outputs,low_outputs, labels_placeholder,FLAGS.regular,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
+      high_loss,low_loss,high_profits,low_profits,realDiffPercent,high_entropy,low_entropy = gold.loss(inputs_placeholder,high_outputs,low_outputs,high_Ylogits,low_Ylogits, labels_placeholder,FLAGS.regular,FLAGS.output_mode,FLAGS.batch_size,FLAGS.use_brnn,FLAGS.num_seqs,FLAGS.num_steps,
                        FLAGS.use_arnn,FLAGS.num_seqs, FLAGS.num_steps,FLAGS.output_nodes,FLAGS.is_test,FLAGS.rnn_rand)
 
         
@@ -223,14 +223,14 @@ def run_training():
 
       # Add to the Graph the Ops that calculate and apply gradients.
       if FLAGS.use_average == 'yes' :
-        high_train_step,low_train_step = gold.training( high_loss,low_loss, learning_rate,FLAGS.train_mode,FLAGS.momentum,FLAGS.decay)
+        high_entropy_step,low_entropy_step,high_train_step,low_train_step = gold.training( high_loss,low_loss,high_entropy,low_entropy, learning_rate,FLAGS.train_mode,FLAGS.momentum,FLAGS.decay)
         variable_averages = tf.train.ExponentialMovingAverage(decay=0.99,num_updates=step)
         variables_averages_op = variable_averages.apply(tf.trainable_variables())
         train_op = tf.group(variables_averages_op,high_train_step,low_train_step)
         saver = tf.train.Saver(variable_averages.variables_to_restore())
       else :
-        high_train_step,low_train_step = gold.training( high_loss,low_loss, learning_rate,FLAGS.train_mode,FLAGS.momentum,FLAGS.decay)
-        train_op = tf.group(high_train_step,low_train_step)
+        high_entropy_step,low_entropy_step,high_train_step,low_train_step = gold.training( high_loss,low_loss,high_entropy,low_entropy, learning_rate,FLAGS.train_mode,FLAGS.momentum,FLAGS.decay)
+        train_op = tf.group(high_entropy_step,low_entropy_step,high_train_step,low_train_step)
         saver = tf.train.Saver()
       # Add the Op to compare the logits to the labels during evaluation.
 
@@ -719,7 +719,7 @@ if __name__ == '__main__':
   parser.add_argument(
       '--train_mode',
       type=str,
-      default='Gradient',
+      default='Adadelta',
       help='Train_mode.'
   )
   parser.add_argument(
