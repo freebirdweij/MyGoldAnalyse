@@ -828,7 +828,10 @@ def loss(inputs,high_outputs,low_outputs,high_Ylogits,low_Ylogits, labels,regula
     high_dotFivePercent = (inputs[:,1]-inputs[:,1]*0.1/100)*0.5/100
     with tf.variable_scope('high_outcomes'):
       W_Calibrate_h = tf.get_variable('w_cali',[1],initializer=tf.constant_initializer(value=1))
-      high_probCalibateValues = high_dotDifferenceValues+high_dotFivePercent*(1-high_firstSecondProb[:,0])*W_Calibrate_h   
+      #high_probCalibateValues = high_dotDifferenceValues+high_dotFivePercent*(1-high_firstSecondProb[:,0])*W_Calibrate_h
+      h_Calibrate_all = tf.get_variable('all_cali',[21,1],initializer=tf.constant_initializer(value=0.05))
+      high_AllCalibProb = tf.matmul(high_outputs, h_Calibrate_all)  
+      high_probCalibateValues = high_dotDifferenceValues+high_dotFivePercent*(1-high_AllCalibProb[:,0])*W_Calibrate_h
     
     '''Construct low price lose'''
     #1.Get the first and second maximum output probabilities.
@@ -850,7 +853,10 @@ def loss(inputs,high_outputs,low_outputs,high_Ylogits,low_Ylogits, labels,regula
     low_dotFivePercent = (inputs[:,2]+inputs[:,2]*0.1/100)*0.5/100
     with tf.variable_scope('low_outcomes'):
       W_Calibrate_l = tf.get_variable('w_cali',[1],initializer=tf.constant_initializer(value=1))
-      low_probCalibateValues = low_dotDifferenceValues-low_dotFivePercent*(1-low_firstSecondProb[:,0])*W_Calibrate_l
+      #low_probCalibateValues = low_dotDifferenceValues-low_dotFivePercent*(1-low_firstSecondProb[:,0])*W_Calibrate_l
+      l_Calibrate_all = tf.get_variable('all_cali',[21,1],initializer=tf.constant_initializer(value=0.05))
+      low_AllCalibProb = tf.matmul(low_outputs, l_Calibrate_all)  
+      low_probCalibateValues = low_dotDifferenceValues-low_dotFivePercent*(1-low_AllCalibProb[:,0])*W_Calibrate_l
     
     #Get differences of two predicted prices
     diffPercentOfPredict = (high_dotDifferenceValues-low_dotDifferenceValues)*100/low_dotDifferenceValues
