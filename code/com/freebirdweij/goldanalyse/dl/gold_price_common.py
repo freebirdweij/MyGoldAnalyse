@@ -825,13 +825,19 @@ def loss(inputs,high_outputs,low_outputs,high_Ylogits,low_Ylogits, labels,regula
     high_predictTwoValues = (high_predictTwoIndices-10)*inputs[:,1]/200+inputs[:,1]
     #3.Get the final values
     high_dotDifferenceValues =  high_predictTwoValues-high_predictTwoValues*0.1/100
-    high_dotFivePercent = (inputs[:,1]-inputs[:,1]*0.1/100)*0.5/100
+    high_SixPercent = inputs[:,1]*0.6/100
+    #high_probCalibateValues = high_predictTwoValues
     with tf.variable_scope('high_outcomes'):
       W_Calibrate_h = tf.get_variable('w_cali',[1],initializer=tf.constant_initializer(value=1))
-      #high_probCalibateValues = high_dotDifferenceValues+high_dotFivePercent*(1-high_firstSecondProb[:,0])*W_Calibrate_h
-      h_Calibrate_all = tf.get_variable('all_cali',[21,1],initializer=tf.constant_initializer(value=0.05))
-      high_AllCalibProb = tf.matmul(high_outputs, h_Calibrate_all)  
-      high_probCalibateValues = high_dotDifferenceValues+high_dotFivePercent*(1-high_AllCalibProb[:,0])*W_Calibrate_h
+      h_Calibrate_bias = tf.get_variable('biases',[1],initializer=tf.constant_initializer(value=0.01))
+      high_probCalibateValues = high_dotDifferenceValues + high_SixPercent*(1-high_firstSecondProb[:,0])*W_Calibrate_h + h_Calibrate_bias
+      #h_Calibrate_bias = tf.get_variable('biases',[1],initializer=tf.constant_initializer(value=0.01))
+      #h_Calibrate_all = tf.get_variable('all_cali',[21,1],initializer=tf.constant_initializer(value=0.05))
+      #high_AllCalibProb = tf.matmul(high_outputs, h_Calibrate_all)+h_Calibrate_bias  
+      #high_AllCalibProb = tf.nn.relu(tf.matmul(high_outputs, h_Calibrate_all)+h_Calibrate_bias)  
+      #high_probCalibateValues = high_dotDifferenceValues+high_SixPercent*(1-high_AllCalibProb[:,0])
+      
+    high_DefenceValue = high_probCalibateValues + high_SixPercent
     
     '''Construct low price lose'''
     #1.Get the first and second maximum output probabilities.
@@ -851,21 +857,29 @@ def loss(inputs,high_outputs,low_outputs,high_Ylogits,low_Ylogits, labels,regula
     #3.Get the final values
     low_dotDifferenceValues =  low_predictTwoValues+low_predictTwoValues*0.1/100
     low_dotFivePercent = (inputs[:,2]+inputs[:,2]*0.1/100)*0.5/100
+    low_SixPercent = inputs[:,2]*0.6/100
+    #low_probCalibateValues = low_predictTwoValues
     with tf.variable_scope('low_outcomes'):
       W_Calibrate_l = tf.get_variable('w_cali',[1],initializer=tf.constant_initializer(value=1))
-      #low_probCalibateValues = low_dotDifferenceValues-low_dotFivePercent*(1-low_firstSecondProb[:,0])*W_Calibrate_l
-      l_Calibrate_all = tf.get_variable('all_cali',[21,1],initializer=tf.constant_initializer(value=0.05))
-      low_AllCalibProb = tf.matmul(low_outputs, l_Calibrate_all)  
-      low_probCalibateValues = low_dotDifferenceValues-low_dotFivePercent*(1-low_AllCalibProb[:,0])*W_Calibrate_l
+      l_Calibrate_bias = tf.get_variable('biases',[1],initializer=tf.constant_initializer(value=0.01))
+      low_probCalibateValues = low_dotDifferenceValues-low_dotFivePercent*(1-low_firstSecondProb[:,0])*W_Calibrate_l + l_Calibrate_bias
+      #l_Calibrate_bias = tf.get_variable('biases',[1],initializer=tf.constant_initializer(value=0.01))
+      #l_Calibrate_all = tf.get_variable('all_cali',[21,1],initializer=tf.constant_initializer(value=0.05))
+      #low_AllCalibProb = tf.matmul(low_outputs, l_Calibrate_all)+l_Calibrate_bias  
+      #low_AllCalibProb = tf.nn.relu(tf.matmul(low_outputs, l_Calibrate_all)+l_Calibrate_bias)  
+      #low_probCalibateValues = low_dotDifferenceValues-low_dotFivePercent*(1-low_AllCalibProb[:,0])
     
+    low_DefenceValue = low_probCalibateValues - low_SixPercent
     #Get differences of two predicted prices
     diffPercentOfPredict = (high_dotDifferenceValues-low_dotDifferenceValues)*100/low_dotDifferenceValues
     lowValueMadeByHigh = high_probCalibateValues-low_dotDifferenceValues*diffPercentOfPredict/100 
     highValueMadeByLow = low_probCalibateValues+low_dotDifferenceValues*diffPercentOfPredict/100
     #Get real differences and prices
-    realHighDotValue = labels[:,0]-labels[:,0]*0.1/100
-    realLowDotValue = labels[:,1]+labels[:,1]*0.1/100
-    realDiffPercent = (realHighDotValue-realLowDotValue)*100/realLowDotValue
+    realHighBankSell = labels[:,0]+labels[:,0]*0.1/100
+    realHighBankBuy = labels[:,0]-labels[:,0]*0.1/100
+    realLowBankSell = labels[:,1]+labels[:,1]*0.1/100
+    realLowBankBuy = labels[:,1]-labels[:,1]*0.1/100
+    realDiffPercent = (realHighBankBuy-realLowBankSell)*100/realLowBankSell
     #Make final two lost
     
     '''if realHighDotValue >= high_probCalibateValues and realHighDotValue <= high_probCalibateValues+high_dotFivePercent :
@@ -878,11 +892,11 @@ def loss(inputs,high_outputs,low_outputs,high_Ylogits,low_Ylogits, labels,regula
         high_profits = -0.25
       else :
         high_profits = 0'''
-    high_profits = tf.where(tf.logical_and(tf.greater_equal(realHighDotValue, high_probCalibateValues),
-                            tf.less_equal(realHighDotValue,high_probCalibateValues+high_dotFivePercent)), 
-            tf.where(tf.less_equal(realLowDotValue,lowValueMadeByHigh),diffPercentOfPredict*0.5,
-                     (realDiffPercent-0.5)*0.5*0.5),
-             tf.where(tf.greater(realHighDotValue,high_probCalibateValues+high_dotFivePercent),diffPercentOfPredict*0-0.25,
+    high_profits = tf.where(tf.logical_and(tf.greater_equal(realHighBankBuy, high_probCalibateValues),
+                            tf.less_equal(realHighBankSell,high_DefenceValue)), 
+            tf.where(tf.less_equal(realLowBankSell,lowValueMadeByHigh),diffPercentOfPredict*0.5,
+                     (realDiffPercent-0.6)*0.5*0.5),
+             tf.where(tf.greater(realHighBankSell,high_DefenceValue),diffPercentOfPredict*0-0.3,
                       diffPercentOfPredict*0))
         
     '''if realLowDotValue <= low_probCalibateValues and realLowDotValue >= low_probCalibateValues-low_dotFivePercent :
@@ -896,11 +910,11 @@ def loss(inputs,high_outputs,low_outputs,high_Ylogits,low_Ylogits, labels,regula
       else :
         low_profits = 0'''
         
-    low_profits= tf.where(tf.logical_and(tf.less_equal(realLowDotValue, low_probCalibateValues),
-                            tf.greater_equal(realLowDotValue,low_probCalibateValues-low_dotFivePercent)), 
-            tf.where(tf.greater_equal(realHighDotValue,highValueMadeByLow),diffPercentOfPredict*0.5,
-                     (realDiffPercent-0.5)*0.5*0.5),
-             tf.where(tf.less(realLowDotValue,low_probCalibateValues-low_dotFivePercent),diffPercentOfPredict*0-0.25,
+    low_profits= tf.where(tf.logical_and(tf.less_equal(realLowBankSell, low_probCalibateValues),
+                            tf.greater_equal(realLowBankBuy,low_DefenceValue)), 
+            tf.where(tf.greater_equal(realHighBankBuy,highValueMadeByLow),diffPercentOfPredict*0.5,
+                     (realDiffPercent-0.6)*0.5*0.5),
+             tf.where(tf.less(realLowBankBuy,low_DefenceValue),diffPercentOfPredict*0-0.3,
                       diffPercentOfPredict*0))
         
     high_mse = tf.reduce_mean(realDiffPercent*0.5-high_profits)
